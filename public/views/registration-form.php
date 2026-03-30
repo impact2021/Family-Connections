@@ -67,7 +67,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 						$capacity = $d->max_enrolees > 0 ? sprintf( __( ' (%d/%d places)', 'fc-courses' ), (int) $d->enrolment_count, (int) $d->max_enrolees ) : '';
 						$location = $d->is_online ? __( 'Online', 'fc-courses' ) : $d->location;
 					?>
-						<option value="<?php echo esc_attr( $d->id ); ?>">
+						<option value="<?php echo esc_attr( $d->id ); ?>" <?php selected( (int) $d->id, $preselect_date_id ); ?>>
 							<?php echo esc_html( wp_date( get_option( 'date_format' ) . ' H:i', strtotime( $d->start_date ) ) . ' — ' . $location . $capacity ); ?>
 						</option>
 					<?php endforeach; ?>
