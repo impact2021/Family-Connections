@@ -71,7 +71,7 @@ class FC_Courses_Shortcodes {
 				'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
 				'nonce'          => wp_create_nonce( 'fc_courses_public_nonce' ),
 				'stripeKey'      => $stripe_key,
-				'currency'       => strtolower( get_option( 'fc_currency', 'GBP' ) ),
+				'currency'       => strtolower( get_option( 'fc_currency', 'NZD' ) ),
 				'i18n'           => array(
 					'processing'   => __( 'Processing…', 'fc-courses' ),
 					'invalidCode'  => __( 'Invalid or expired discount code.', 'fc-courses' ),
@@ -403,7 +403,7 @@ class FC_Courses_Shortcodes {
 		$body .= '<p>' . sprintf( esc_html__( 'Thank you for registering for <strong>%s</strong>.', 'fc-courses' ), esc_html( $course->title ) ) . '</p>';
 		$body .= '<p>' . esc_html__( 'Course date:', 'fc-courses' ) . ' ' . esc_html( wp_date( get_option( 'date_format' ), strtotime( $course_date->start_date ) ) ) . '</p>';
 		if ( $amount > 0 ) {
-			$currency = strtoupper( get_option( 'fc_currency', 'GBP' ) );
+			$currency = strtoupper( get_option( 'fc_currency', 'NZD' ) );
 			$body    .= '<p>' . sprintf( esc_html__( 'Amount due: %s %s', 'fc-courses' ), esc_html( $currency ), esc_html( number_format( $amount, 2 ) ) ) . '</p>';
 		}
 		$body .= $bank_html;

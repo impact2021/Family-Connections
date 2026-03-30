@@ -221,7 +221,7 @@ class FC_Courses_Admin {
 		$description = wp_kses_post( wp_unslash( $_POST['description'] ?? '' ) );
 		$course_type = in_array( $_POST['course_type'] ?? '', array( 'free', 'paid' ), true ) ? sanitize_text_field( wp_unslash( $_POST['course_type'] ) ) : 'free';
 		$price       = round( (float) ( $_POST['price'] ?? 0 ), 2 );
-		$currency    = strtoupper( sanitize_text_field( wp_unslash( $_POST['currency'] ?? 'GBP' ) ) );
+		$currency    = strtoupper( sanitize_text_field( wp_unslash( $_POST['currency'] ?? 'NZD' ) ) );
 		$max         = absint( $_POST['max_enrolees'] ?? 0 );
 		$status      = in_array( $_POST['status'] ?? '', array( 'publish', 'draft' ), true ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'publish';
 

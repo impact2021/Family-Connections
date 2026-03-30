@@ -120,8 +120,8 @@ $dates = $view_course
 						<th><label for="currency"><?php esc_html_e( 'Currency', 'fc-courses' ); ?></label></th>
 						<td>
 							<select name="currency" id="currency">
-								<?php foreach ( array( 'GBP', 'EUR', 'USD' ) as $cur ) : ?>
-									<option value="<?php echo esc_attr( $cur ); ?>" <?php selected( $edit_course->currency ?? 'GBP', $cur ); ?>><?php echo esc_html( $cur ); ?></option>
+								<?php foreach ( array( 'NZD', 'GBP', 'EUR', 'USD' ) as $cur ) : ?>
+									<option value="<?php echo esc_attr( $cur ); ?>" <?php selected( $edit_course->currency ?? 'NZD', $cur ); ?>><?php echo esc_html( $cur ); ?></option>
 								<?php endforeach; ?>
 							</select>
 						</td>

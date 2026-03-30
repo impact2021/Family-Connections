@@ -196,7 +196,7 @@ class FC_Courses_Payments {
 	 *
 	 * @param int    $enrollment_id Enrollment ID.
 	 * @param object $course        Course row.
-	 * @param float  $amount        Amount in major currency units (e.g. GBP 15.00).
+	 * @param float  $amount        Amount in major currency units (e.g. NZD 15.00).
 	 * @return string|false Checkout URL or false on failure.
 	 */
 	public function create_stripe_checkout( $enrollment_id, $course, $amount ) {
@@ -206,9 +206,9 @@ class FC_Courses_Payments {
 		}
 
 		$test_mode = '1' === get_option( 'fc_stripe_test_mode', '0' );
-		$currency  = strtolower( get_option( 'fc_currency', 'GBP' ) );
+		$currency  = strtolower( get_option( 'fc_currency', 'NZD' ) );
 
-		// Amount must be in smallest currency unit (pence for GBP).
+		// Amount must be in smallest currency unit (cents for NZD).
 		$amount_cents = (int) round( $amount * 100 );
 
 		$success_url = add_query_arg( array( 'fc_stripe' => 'success', 'enrollment_id' => $enrollment_id ), home_url( '/' ) );
@@ -341,7 +341,7 @@ class FC_Courses_Payments {
 			$label      = (int) $code_row->discount_value . '% ' . __( 'discount', 'fc-courses' );
 		} else {
 			$discounted = max( 0, $price - (float) $code_row->discount_value );
-			$label      = get_option( 'fc_currency', 'GBP' ) . number_format( (float) $code_row->discount_value, 2 ) . ' ' . __( 'discount', 'fc-courses' );
+			$label      = get_option( 'fc_currency', 'NZD' ) . number_format( (float) $code_row->discount_value, 2 ) . ' ' . __( 'discount', 'fc-courses' );
 		}
 
 		wp_send_json_success( array(
