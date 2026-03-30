@@ -503,6 +503,24 @@ class FC_Courses_Admin {
 		update_option( 'fc_stripe_test_mode', isset( $_POST['fc_stripe_test_mode'] ) ? '1' : '0' );
 		update_option( 'fc_enable_bank_transfer', isset( $_POST['fc_enable_bank_transfer'] ) ? '1' : '0' );
 
+		// Registration form field configuration.
+		if ( isset( $_POST['fc_form_fields'] ) && is_array( $_POST['fc_form_fields'] ) ) {
+			$allowed_keys = array( 'first_name', 'last_name', 'email', 'phone', 'organisation' );
+			$form_fields  = array();
+			foreach ( $allowed_keys as $key ) {
+				// Only whitelisted keys are processed; each sub-value is sanitized individually below.
+				$posted = isset( $_POST['fc_form_fields'][ $key ] ) && is_array( $_POST['fc_form_fields'][ $key ] )
+					? $_POST['fc_form_fields'][ $key ]
+					: array();
+				$form_fields[ $key ] = array(
+					'label'    => sanitize_text_field( wp_unslash( $posted['label'] ?? '' ) ),
+					'enabled'  => isset( $posted['enabled'] ) ? '1' : '0',
+					'required' => isset( $posted['required'] ) ? '1' : '0',
+				);
+			}
+			update_option( 'fc_form_fields', $form_fields );
+		}
+
 		wp_safe_redirect( admin_url( 'admin.php?page=fc-courses-settings&saved=1' ) );
 		exit;
 	}

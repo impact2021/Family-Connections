@@ -25,6 +25,77 @@ if ( ! defined( 'ABSPATH' ) ) {
 class FC_Courses_Shortcodes {
 
 	/**
+	 * Return the configuration for every registration form field.
+	 *
+	 * Each entry has:
+	 *  default_label  string  – the hard-coded fallback label (never changes)
+	 *  label          string  – the admin-editable label (falls back to default_label)
+	 *  enabled        string  – '1' | '0'  whether the field is shown
+	 *  required       string  – '1' | '0'  whether the field is required
+	 *
+	 * first_name, last_name, and email are always visible and always required;
+	 * only their label is customisable.
+	 *
+	 * @return array<string, array>
+	 */
+	public static function get_form_fields() {
+		$defaults = array(
+			'first_name'   => array(
+				'default_label' => __( 'First Name', 'fc-courses' ),
+				'label'         => __( 'First Name', 'fc-courses' ),
+				'enabled'       => '1',
+				'required'      => '1',
+			),
+			'last_name'    => array(
+				'default_label' => __( 'Last Name', 'fc-courses' ),
+				'label'         => __( 'Last Name', 'fc-courses' ),
+				'enabled'       => '1',
+				'required'      => '1',
+			),
+			'email'        => array(
+				'default_label' => __( 'Email Address', 'fc-courses' ),
+				'label'         => __( 'Email Address', 'fc-courses' ),
+				'enabled'       => '1',
+				'required'      => '1',
+			),
+			'phone'        => array(
+				'default_label' => __( 'Phone', 'fc-courses' ),
+				'label'         => __( 'Phone', 'fc-courses' ),
+				'enabled'       => '1',
+				'required'      => '0',
+			),
+			'organisation' => array(
+				'default_label' => __( 'Organisation', 'fc-courses' ),
+				'label'         => __( 'Organisation', 'fc-courses' ),
+				'enabled'       => '1',
+				'required'      => '0',
+			),
+		);
+
+		$saved = get_option( 'fc_form_fields', array() );
+		if ( ! is_array( $saved ) ) {
+			$saved = array();
+		}
+
+		foreach ( $defaults as $key => $default ) {
+			if ( isset( $saved[ $key ] ) && is_array( $saved[ $key ] ) ) {
+				// Label is editable for every field.
+				if ( ! empty( $saved[ $key ]['label'] ) ) {
+					$defaults[ $key ]['label'] = $saved[ $key ]['label'];
+				}
+				// Visibility and required are only saved/honoured for phone & organisation;
+				// first_name / last_name / email are always on and always required.
+				if ( in_array( $key, array( 'phone', 'organisation' ), true ) ) {
+					$defaults[ $key ]['enabled']  = isset( $saved[ $key ]['enabled'] ) ? $saved[ $key ]['enabled'] : $default['enabled'];
+					$defaults[ $key ]['required'] = isset( $saved[ $key ]['required'] ) ? $saved[ $key ]['required'] : $default['required'];
+				}
+			}
+		}
+
+		return $defaults;
+	}
+
+	/**
 	 * Register hooks.
 	 */
 	public function init() {
@@ -234,6 +305,8 @@ class FC_Courses_Shortcodes {
 			$form_error   = $result['error'] ?? '';
 		}
 
+		$fields = self::get_form_fields();
+
 		ob_start();
 		include FC_COURSES_PLUGIN_DIR . 'public/views/registration-form.php';
 		return ob_get_clean();
@@ -262,6 +335,15 @@ class FC_Courses_Shortcodes {
 
 		// Validate required fields.
 		if ( ! $first_name || ! $last_name || ! is_email( $email ) || ! $course_date_id ) {
+			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
+		}
+
+		// Validate dynamically required fields (phone, organisation).
+		$fields = self::get_form_fields();
+		if ( '1' === $fields['phone']['required'] && '1' === $fields['phone']['enabled'] && ! $phone ) {
+			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
+		}
+		if ( '1' === $fields['organisation']['required'] && '1' === $fields['organisation']['enabled'] && ! $organisation ) {
 			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
 		}
 
