@@ -159,5 +159,63 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</table>
 
 		<?php submit_button( __( 'Save Settings', 'fc-courses' ) ); ?>
+
+		<!-- Registration Form Fields -->
+		<h2><?php esc_html_e( 'Registration Form Fields', 'fc-courses' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Customise the label, visibility, and required state of each registration form field. First Name, Last Name, and Email Address are always shown and always required.', 'fc-courses' ); ?></p>
+
+		<table class="widefat striped" style="max-width:860px;margin-top:1em">
+			<thead>
+				<tr>
+					<th style="width:180px"><?php esc_html_e( 'Field', 'fc-courses' ); ?></th>
+					<th><?php esc_html_e( 'Custom Label', 'fc-courses' ); ?></th>
+					<th style="width:90px;text-align:center"><?php esc_html_e( 'Visible', 'fc-courses' ); ?></th>
+					<th style="width:90px;text-align:center"><?php esc_html_e( 'Required', 'fc-courses' ); ?></th>
+				</tr>
+			</thead>
+			<tbody>
+				<?php
+				$form_fields      = FC_Courses_Shortcodes::get_form_fields();
+				$locked_fields    = array( 'first_name', 'last_name', 'email' );
+				foreach ( $form_fields as $key => $field ) :
+					$is_locked = in_array( $key, $locked_fields, true );
+				?>
+				<tr>
+					<td><strong><?php echo esc_html( $field['default_label'] ); ?></strong></td>
+					<td>
+						<input type="text"
+						       name="fc_form_fields[<?php echo esc_attr( $key ); ?>][label]"
+						       class="regular-text"
+						       value="<?php echo esc_attr( $field['label'] ); ?>"
+						       placeholder="<?php echo esc_attr( $field['default_label'] ); ?>">
+					</td>
+					<td style="text-align:center">
+						<?php if ( $is_locked ) : ?>
+							<input type="checkbox" checked disabled title="<?php esc_attr_e( 'Always visible', 'fc-courses' ); ?>">
+							<input type="hidden" name="fc_form_fields[<?php echo esc_attr( $key ); ?>][enabled]" value="1">
+						<?php else : ?>
+							<input type="checkbox"
+							       name="fc_form_fields[<?php echo esc_attr( $key ); ?>][enabled]"
+							       value="1"
+							       <?php checked( $field['enabled'], '1' ); ?>>
+						<?php endif; ?>
+					</td>
+					<td style="text-align:center">
+						<?php if ( $is_locked ) : ?>
+							<input type="checkbox" checked disabled title="<?php esc_attr_e( 'Always required', 'fc-courses' ); ?>">
+							<input type="hidden" name="fc_form_fields[<?php echo esc_attr( $key ); ?>][required]" value="1">
+						<?php else : ?>
+							<input type="checkbox"
+							       name="fc_form_fields[<?php echo esc_attr( $key ); ?>][required]"
+							       value="1"
+							       <?php checked( $field['required'], '1' ); ?>>
+						<?php endif; ?>
+					</td>
+				</tr>
+				<?php endforeach; ?>
+			</tbody>
+		</table>
+
+		<?php submit_button( __( 'Save Settings', 'fc-courses' ) ); ?>
 	</form>
 </div>

@@ -6,6 +6,7 @@
  *  $course       object|null  – specific course (if course_id given in shortcode)
  *  $courses      array        – all published courses
  *  $dates        array        – upcoming dates for $course (if set)
+ *  $fields       array        – form field configuration from FC_Courses_Shortcodes::get_form_fields()
  *  $form_message string       – success message
  *  $form_error   string       – error message
  *
@@ -80,29 +81,52 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<!-- Personal details -->
 		<div class="fc-field-row">
 			<div class="fc-field">
-				<label for="first_name"><?php esc_html_e( 'First Name', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
+				<label for="first_name">
+					<?php echo esc_html( $fields['first_name']['label'] ); ?>
+					<span class="fc-required">*</span>
+				</label>
 				<input type="text" name="first_name" id="first_name" required value="<?php echo isset( $_POST['first_name'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['first_name'] ) ) ) : ''; ?>">
 			</div>
 			<div class="fc-field">
-				<label for="last_name"><?php esc_html_e( 'Last Name', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
+				<label for="last_name">
+					<?php echo esc_html( $fields['last_name']['label'] ); ?>
+					<span class="fc-required">*</span>
+				</label>
 				<input type="text" name="last_name" id="last_name" required value="<?php echo isset( $_POST['last_name'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['last_name'] ) ) ) : ''; ?>">
 			</div>
 		</div>
 
 		<div class="fc-field">
-			<label for="email"><?php esc_html_e( 'Email Address', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
+			<label for="email">
+				<?php echo esc_html( $fields['email']['label'] ); ?>
+				<span class="fc-required">*</span>
+			</label>
 			<input type="email" name="email" id="email" required value="<?php echo isset( $_POST['email'] ) ? esc_attr( sanitize_email( wp_unslash( $_POST['email'] ) ) ) : ''; ?>">
 		</div>
 
+		<?php if ( '1' === $fields['phone']['enabled'] ) : ?>
 		<div class="fc-field">
-			<label for="phone"><?php esc_html_e( 'Phone', 'fc-courses' ); ?></label>
-			<input type="tel" name="phone" id="phone" value="<?php echo isset( $_POST['phone'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['phone'] ) ) ) : ''; ?>">
+			<label for="phone">
+				<?php echo esc_html( $fields['phone']['label'] ); ?>
+				<?php if ( '1' === $fields['phone']['required'] ) : ?><span class="fc-required">*</span><?php endif; ?>
+			</label>
+			<input type="tel" name="phone" id="phone"
+			       <?php echo '1' === $fields['phone']['required'] ? 'required' : ''; ?>
+			       value="<?php echo isset( $_POST['phone'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['phone'] ) ) ) : ''; ?>">
 		</div>
+		<?php endif; ?>
 
+		<?php if ( '1' === $fields['organisation']['enabled'] ) : ?>
 		<div class="fc-field">
-			<label for="organisation"><?php esc_html_e( 'Organisation', 'fc-courses' ); ?></label>
-			<input type="text" name="organisation" id="organisation" value="<?php echo isset( $_POST['organisation'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['organisation'] ) ) ) : ''; ?>">
+			<label for="organisation">
+				<?php echo esc_html( $fields['organisation']['label'] ); ?>
+				<?php if ( '1' === $fields['organisation']['required'] ) : ?><span class="fc-required">*</span><?php endif; ?>
+			</label>
+			<input type="text" name="organisation" id="organisation"
+			       <?php echo '1' === $fields['organisation']['required'] ? 'required' : ''; ?>
+			       value="<?php echo isset( $_POST['organisation'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['organisation'] ) ) ) : ''; ?>">
 		</div>
+		<?php endif; ?>
 
 		<!-- Discount code -->
 		<div class="fc-field fc-discount-field" id="fc-discount-field" style="display:none">
