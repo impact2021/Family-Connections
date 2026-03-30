@@ -71,7 +71,7 @@ if ( ! $dates ) {
 				<td class="fc-cal-price"><?php echo $price_label; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — already escaped above ?></td>
 				<td class="fc-cal-register">
 					<?php if ( 'fc-places-full' !== $places_class ) : ?>
-						<a href="<?php echo esc_url( add_query_arg( array( 'fc_date' => $d->id, 'fc_course' => $d->course_id ), get_permalink() ) ); ?>" class="fc-register-link button">
+						<a href="<?php echo esc_url( add_query_arg( array( 'fc_date' => $d->id, 'fc_course' => $d->course_id ), ! empty( $registration_url ) ? $registration_url : get_permalink() ) ); ?>" class="fc-register-link button">
 							<?php esc_html_e( 'Register', 'fc-courses' ); ?>
 						</a>
 					<?php else : ?>

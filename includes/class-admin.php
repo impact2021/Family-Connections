@@ -75,6 +75,15 @@ class FC_Courses_Admin {
 
 		add_submenu_page(
 			'fc-courses',
+			__( 'Course Dates', 'fc-courses' ),
+			__( 'Course Dates', 'fc-courses' ),
+			$capability,
+			'fc-courses-course-dates',
+			array( $this, 'page_course_dates' )
+		);
+
+		add_submenu_page(
+			'fc-courses',
 			__( 'Discount Codes', 'fc-courses' ),
 			__( 'Discount Codes', 'fc-courses' ),
 			$capability,
@@ -114,6 +123,7 @@ class FC_Courses_Admin {
 		$fc_pages = array(
 			'toplevel_page_fc-courses',
 			'fc-courses_page_fc-courses-courses',
+			'fc-courses_page_fc-courses-course-dates',
 			'fc-courses_page_fc-courses-discount-codes',
 			'fc-courses_page_fc-courses-settings',
 			'fc-courses_page_fc-courses-docs',
@@ -164,6 +174,13 @@ class FC_Courses_Admin {
 	 */
 	public function page_courses() {
 		$this->render_view( 'page-courses' );
+	}
+
+	/**
+	 * Render the Course Dates page.
+	 */
+	public function page_course_dates() {
+		$this->render_view( 'page-course-dates' );
 	}
 
 	/**
@@ -221,7 +238,7 @@ class FC_Courses_Admin {
 		$description = wp_kses_post( wp_unslash( $_POST['description'] ?? '' ) );
 		$course_type = in_array( $_POST['course_type'] ?? '', array( 'free', 'paid' ), true ) ? sanitize_text_field( wp_unslash( $_POST['course_type'] ) ) : 'free';
 		$price       = round( (float) ( $_POST['price'] ?? 0 ), 2 );
-		$currency    = strtoupper( sanitize_text_field( wp_unslash( $_POST['currency'] ?? 'GBP' ) ) );
+		$currency    = strtoupper( sanitize_text_field( wp_unslash( $_POST['currency'] ?? 'NZD' ) ) );
 		$max         = absint( $_POST['max_enrolees'] ?? 0 );
 		$status      = in_array( $_POST['status'] ?? '', array( 'publish', 'draft' ), true ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : 'publish';
 
@@ -300,7 +317,7 @@ class FC_Courses_Admin {
 			$wpdb->insert( $table, $data, $fmt );
 		}
 
-		wp_safe_redirect( admin_url( 'admin.php?page=fc-courses-courses&course_id=' . $course_id . '&saved=1' ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=fc-courses-course-dates&course_id=' . $course_id . '&saved=1' ) );
 		exit;
 	}
 
@@ -320,7 +337,7 @@ class FC_Courses_Admin {
 			$wpdb->delete( $wpdb->prefix . 'fc_course_dates', array( 'id' => $id ), array( '%d' ) );
 		}
 
-		wp_safe_redirect( admin_url( 'admin.php?page=fc-courses-courses&course_id=' . $course_id . '&deleted=1' ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=fc-courses-course-dates&course_id=' . $course_id . '&deleted=1' ) );
 		exit;
 	}
 
@@ -473,6 +490,7 @@ class FC_Courses_Admin {
 			'fc_currency',
 			'fc_success_page_id',
 			'fc_cancel_page_id',
+			'fc_registration_page_id',
 		);
 
 		foreach ( $fields as $field ) {

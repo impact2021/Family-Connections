@@ -27,8 +27,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<th><label for="fc_currency"><?php esc_html_e( 'Currency', 'fc-courses' ); ?></label></th>
 				<td>
 					<select name="fc_currency" id="fc_currency">
-						<?php foreach ( array( 'GBP', 'EUR', 'USD' ) as $cur ) : ?>
-							<option value="<?php echo esc_attr( $cur ); ?>" <?php selected( get_option( 'fc_currency', 'GBP' ), $cur ); ?>><?php echo esc_html( $cur ); ?></option>
+						<?php foreach ( array( 'NZD', 'GBP', 'EUR', 'USD' ) as $cur ) : ?>
+							<option value="<?php echo esc_attr( $cur ); ?>" <?php selected( get_option( 'fc_currency', 'NZD' ), $cur ); ?>><?php echo esc_html( $cur ); ?></option>
 						<?php endforeach; ?>
 					</select>
 				</td>
@@ -76,6 +76,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 					) );
 					?>
 					<p class="description"><?php esc_html_e( 'Page shown when a user cancels a Stripe payment.', 'fc-courses' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th><label for="fc_registration_page_id"><?php esc_html_e( 'Registration Page', 'fc-courses' ); ?></label></th>
+				<td>
+					<?php
+					wp_dropdown_pages( array(
+						'name'             => 'fc_registration_page_id',
+						'id'               => 'fc_registration_page_id',
+						'selected'         => (int) get_option( 'fc_registration_page_id', 0 ),
+						'show_option_none' => __( '— Select page —', 'fc-courses' ),
+					) );
+					?>
+					<p class="description"><?php esc_html_e( 'Page containing the [fc_course_registration] shortcode. Used by the Register button in the course calendar.', 'fc-courses' ); ?></p>
 				</td>
 			</tr>
 		</table>

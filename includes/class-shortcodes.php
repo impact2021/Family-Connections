@@ -71,7 +71,7 @@ class FC_Courses_Shortcodes {
 				'ajaxUrl'        => admin_url( 'admin-ajax.php' ),
 				'nonce'          => wp_create_nonce( 'fc_courses_public_nonce' ),
 				'stripeKey'      => $stripe_key,
-				'currency'       => strtolower( get_option( 'fc_currency', 'GBP' ) ),
+				'currency'       => strtolower( get_option( 'fc_currency', 'NZD' ) ),
 				'i18n'           => array(
 					'processing'   => __( 'Processing…', 'fc-courses' ),
 					'invalidCode'  => __( 'Invalid or expired discount code.', 'fc-courses' ),
@@ -164,6 +164,9 @@ class FC_Courses_Shortcodes {
 			? $wpdb->get_results( $wpdb->prepare( $sql, $args ) ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			: $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
+		$reg_page_id      = (int) get_option( 'fc_registration_page_id', 0 );
+		$registration_url = $reg_page_id > 0 ? get_permalink( $reg_page_id ) : '';
+
 		ob_start();
 		include FC_COURSES_PLUGIN_DIR . 'public/views/course-calendar.php';
 		return ob_get_clean();
@@ -191,6 +194,15 @@ class FC_Courses_Shortcodes {
 		global $wpdb;
 
 		$course_id = absint( $atts['course_id'] );
+
+		// Pre-populate from URL query params (e.g. the Register button in [fc_course_calendar]).
+		// These are UI-only hints: absint() sanitises the values and they only pre-select
+		// dropdown options; the form submission is independently validated via fc_register_nonce.
+		if ( 0 === $course_id ) {
+			$course_id = isset( $_GET['fc_course'] ) ? absint( $_GET['fc_course'] ) : 0;
+		}
+		$preselect_date_id = isset( $_GET['fc_date'] ) ? absint( $_GET['fc_date'] ) : 0;
+
 		$course    = null;
 		$dates     = array();
 
@@ -403,7 +415,7 @@ class FC_Courses_Shortcodes {
 		$body .= '<p>' . sprintf( esc_html__( 'Thank you for registering for <strong>%s</strong>.', 'fc-courses' ), esc_html( $course->title ) ) . '</p>';
 		$body .= '<p>' . esc_html__( 'Course date:', 'fc-courses' ) . ' ' . esc_html( wp_date( get_option( 'date_format' ), strtotime( $course_date->start_date ) ) ) . '</p>';
 		if ( $amount > 0 ) {
-			$currency = strtoupper( get_option( 'fc_currency', 'GBP' ) );
+			$currency = strtoupper( get_option( 'fc_currency', 'NZD' ) );
 			$body    .= '<p>' . sprintf( esc_html__( 'Amount due: %s %s', 'fc-courses' ), esc_html( $currency ), esc_html( number_format( $amount, 2 ) ) ) . '</p>';
 		}
 		$body .= $bank_html;
