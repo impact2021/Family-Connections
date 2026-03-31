@@ -100,11 +100,8 @@ $edit_course = $edit_course_id
 					<tr>
 						<th><label for="currency"><?php esc_html_e( 'Currency', 'fc-courses' ); ?></label></th>
 						<td>
-							<select name="currency" id="currency">
-								<?php foreach ( array( 'NZD', 'GBP', 'EUR', 'USD' ) as $cur ) : ?>
-									<option value="<?php echo esc_attr( $cur ); ?>" <?php selected( $edit_course->currency ?? 'NZD', $cur ); ?>><?php echo esc_html( $cur ); ?></option>
-								<?php endforeach; ?>
-							</select>
+							<input type="hidden" name="currency" id="currency" value="NZD">
+							<span>NZD</span>
 						</td>
 					</tr>
 					<tr>
