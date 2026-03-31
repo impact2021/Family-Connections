@@ -26,11 +26,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<tr>
 				<th><label for="fc_currency"><?php esc_html_e( 'Currency', 'fc-courses' ); ?></label></th>
 				<td>
-					<select name="fc_currency" id="fc_currency">
-						<?php foreach ( array( 'NZD', 'GBP', 'EUR', 'USD' ) as $cur ) : ?>
-							<option value="<?php echo esc_attr( $cur ); ?>" <?php selected( get_option( 'fc_currency', 'NZD' ), $cur ); ?>><?php echo esc_html( $cur ); ?></option>
-						<?php endforeach; ?>
-					</select>
+					<input type="hidden" name="fc_currency" id="fc_currency" value="NZD">
+					<span>NZD</span>
 				</td>
 			</tr>
 			<tr>

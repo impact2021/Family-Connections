@@ -1,0 +1,203 @@
+/**
+ * FC Courses – Front-end styles.
+ *
+ * @package FC_Courses
+ */
+
+/* ── General notices ─────────────────────────────────────────── */
+.fc-notice {
+	padding: 12px 16px;
+	margin-bottom: 16px;
+	border-radius: 4px;
+}
+
+.fc-notice-success {
+	background: #d4edda;
+	color: #155724;
+	border: 1px solid #c3e6cb;
+}
+
+.fc-notice-error {
+	background: #f8d7da;
+	color: #721c24;
+	border: 1px solid #f5c6cb;
+}
+
+/* ── Course list ─────────────────────────────────────────────── */
+.fc-course-list {
+	display: grid;
+	grid-template-columns: repeat( auto-fill, minmax( 280px, 1fr ) );
+	gap: 24px;
+	margin: 24px 0;
+}
+
+.fc-course-card {
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	padding: 20px;
+	background: #fff;
+}
+
+.fc-course-card h3 {
+	margin-top: 0;
+}
+
+.fc-course-price {
+	font-weight: bold;
+	font-size: 1.1em;
+	color: #0073aa;
+}
+
+/* ── Course calendar table ───────────────────────────────────── */
+.fc-calendar-wrap {
+	overflow-x: auto;
+	margin: 24px 0;
+}
+
+.fc-calendar-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.fc-calendar-table th,
+.fc-calendar-table td {
+	padding: 10px 14px;
+	text-align: left;
+	border-bottom: 1px solid #e0e0e0;
+}
+
+.fc-calendar-table thead th {
+	background: #f5f5f5;
+	font-weight: 600;
+}
+
+.fc-places-available {
+	color: #2e7d32;
+}
+
+.fc-places-full {
+	color: #c62828;
+}
+
+.fc-full-label {
+	color: #999;
+	font-style: italic;
+}
+
+.fc-register-link.button {
+	white-space: nowrap;
+}
+
+/* ── Registration form – 2-column table layout ───────────────── */
+.fc-registration-wrap {
+	max-width: 700px;
+	margin: 24px 0;
+}
+
+.fc-registration-form .fc-form-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 16px;
+}
+
+.fc-registration-form .fc-form-table th,
+.fc-registration-form .fc-form-table td {
+	padding: 10px 12px;
+	vertical-align: middle;
+	border-bottom: 1px solid #e8e8e8;
+}
+
+.fc-registration-form .fc-form-table th {
+	width: 38%;
+	text-align: right;
+	font-weight: 600;
+	padding-right: 20px;
+	color: #333;
+}
+
+.fc-registration-form .fc-form-table td {
+	width: 62%;
+}
+
+.fc-registration-form .fc-form-table input[type="text"],
+.fc-registration-form .fc-form-table input[type="email"],
+.fc-registration-form .fc-form-table input[type="tel"],
+.fc-registration-form .fc-form-table select {
+	width: 100%;
+	max-width: 380px;
+	padding: 7px 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 1em;
+}
+
+.fc-required {
+	color: #c62828;
+	margin-left: 2px;
+}
+
+/* Discount code row */
+.fc-discount-row {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.fc-discount-row input {
+	flex: 1;
+}
+
+.fc-discount-message {
+	display: block;
+	margin-top: 4px;
+	font-size: 0.9em;
+}
+
+/* Payment options */
+.fc-payment-options {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.fc-payment-option {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+}
+
+/* Submit button */
+.fc-submit-btn {
+	margin-top: 4px;
+}
+
+/* Responsive: stack to single column on small screens */
+@media ( max-width: 560px ) {
+	.fc-registration-form .fc-form-table,
+	.fc-registration-form .fc-form-table tbody,
+	.fc-registration-form .fc-form-table tr,
+	.fc-registration-form .fc-form-table th,
+	.fc-registration-form .fc-form-table td {
+		display: block;
+		width: 100%;
+	}
+
+	.fc-registration-form .fc-form-table th {
+		text-align: left;
+		padding-right: 12px;
+		padding-bottom: 2px;
+		border-bottom: none;
+	}
+
+	.fc-registration-form .fc-form-table td {
+		padding-top: 2px;
+	}
+
+	.fc-registration-form .fc-form-table input[type="text"],
+	.fc-registration-form .fc-form-table input[type="email"],
+	.fc-registration-form .fc-form-table input[type="tel"],
+	.fc-registration-form .fc-form-table select {
+		max-width: 100%;
+	}
+}
