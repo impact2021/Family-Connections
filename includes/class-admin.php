@@ -487,10 +487,7 @@ class FC_Courses_Admin {
 			'fc_admin_email',
 			'fc_from_email',
 			'fc_from_name',
-			'fc_currency',
 			'fc_success_page_id',
-			'fc_cancel_page_id',
-			'fc_registration_page_id',
 		);
 
 		foreach ( $fields as $field ) {
@@ -503,9 +500,14 @@ class FC_Courses_Admin {
 		update_option( 'fc_stripe_test_mode', isset( $_POST['fc_stripe_test_mode'] ) ? '1' : '0' );
 		update_option( 'fc_enable_bank_transfer', isset( $_POST['fc_enable_bank_transfer'] ) ? '1' : '0' );
 
+		// Participant types – stored as newline-separated text.
+		if ( isset( $_POST['fc_participant_types'] ) ) {
+			update_option( 'fc_participant_types', sanitize_textarea_field( wp_unslash( $_POST['fc_participant_types'] ) ) );
+		}
+
 		// Registration form field configuration.
 		if ( isset( $_POST['fc_form_fields'] ) && is_array( $_POST['fc_form_fields'] ) ) {
-			$allowed_keys = array( 'first_name', 'last_name', 'email', 'phone', 'organisation' );
+			$allowed_keys = array( 'first_name', 'last_name', 'email', 'phone', 'organisation', 'participant_type' );
 			$form_fields  = array();
 			foreach ( $allowed_keys as $key ) {
 				// Only whitelisted keys are processed; each sub-value is sanitized individually below.

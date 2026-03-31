@@ -52,7 +52,7 @@ $codes     = $wpdb->get_results( "SELECT dc.*, c.title AS course_title FROM {$wp
 								if ( 'percentage' === $dc->discount_type ) {
 									echo esc_html( (int) $dc->discount_value . '%' );
 								} else {
-									echo esc_html( get_option( 'fc_currency', 'NZD' ) . ' ' . number_format( (float) $dc->discount_value, 2 ) );
+									echo esc_html( FC_Courses_Shortcodes::currency_symbol() . number_format( (float) $dc->discount_value, 2 ) );
 								}
 								?>
 							</td>

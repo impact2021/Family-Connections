@@ -131,6 +131,7 @@ $edit_enrollment = isset( $_GET['edit'] ) ? $wpdb->get_row( $wpdb->prepare( "SEL
 				<th><?php esc_html_e( 'Email', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Course', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Date', 'fc-courses' ); ?></th>
+				<th><?php esc_html_e( 'Participant Type', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Payment', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Status', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Enrolled', 'fc-courses' ); ?></th>
@@ -146,6 +147,7 @@ $edit_enrollment = isset( $_GET['edit'] ) ? $wpdb->get_row( $wpdb->prepare( "SEL
 					<td><?php echo esc_html( $e->email ); ?></td>
 					<td><?php echo esc_html( $e->course_title ); ?></td>
 					<td><?php echo $e->date_start ? esc_html( wp_date( get_option( 'date_format' ), strtotime( $e->date_start ) ) ) : '—'; ?></td>
+					<td><?php echo $e->participant_type ? esc_html( $e->participant_type ) : '—'; ?></td>
 					<td><?php echo esc_html( ucfirst( str_replace( '_', ' ', $e->payment_method ) ) ); ?></td>
 					<td><span class="fc-status fc-status-<?php echo esc_attr( $e->payment_status ); ?>"><?php echo esc_html( ucfirst( $e->payment_status ) ); ?></span></td>
 					<td><?php echo esc_html( wp_date( get_option( 'date_format' ), strtotime( $e->enrolled_at ) ) ); ?></td>
@@ -156,7 +158,7 @@ $edit_enrollment = isset( $_GET['edit'] ) ? $wpdb->get_row( $wpdb->prepare( "SEL
 				</tr>
 				<?php endforeach; ?>
 			<?php else : ?>
-				<tr><td colspan="9"><?php esc_html_e( 'No enrolments found.', 'fc-courses' ); ?></td></tr>
+				<tr><td colspan="10"><?php esc_html_e( 'No enrolments found.', 'fc-courses' ); ?></td></tr>
 			<?php endif; ?>
 		</tbody>
 	</table>

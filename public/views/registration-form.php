@@ -46,7 +46,7 @@ exit;
         data-currency="<?php echo esc_attr( $c->currency ); ?>">
 <?php echo esc_html( $c->title ); ?>
 <?php if ( 'paid' === $c->course_type ) : ?>
-(<?php echo esc_html( $c->currency . ' ' . number_format( (float) $c->price, 2 ) ); ?>)
+(<?php echo esc_html( FC_Courses_Shortcodes::currency_symbol( $c->currency ) . number_format( (float) $c->price, 2 ) ); ?>)
 <?php endif; ?>
 </option>
 <?php endforeach; ?>
@@ -136,6 +136,29 @@ $location = $d->is_online ? __( 'Online', 'fc-courses' ) : $d->location;
 <input type="text" name="organisation" id="organisation"
        <?php echo '1' === $fields['organisation']['required'] ? 'required' : ''; ?>
        value="<?php echo isset( $_POST['organisation'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['organisation'] ) ) ) : ''; ?>">
+</td>
+</tr>
+<?php endif; ?>
+
+<?php if ( '1' === $fields['participant_type']['enabled'] ) : ?>
+<!-- Participant Type -->
+<tr>
+<th>
+<label for="participant_type">
+<?php echo esc_html( $fields['participant_type']['label'] ); ?>
+<?php if ( '1' === $fields['participant_type']['required'] ) : ?><span class="fc-required">*</span><?php endif; ?>
+</label>
+</th>
+<td>
+<select name="participant_type" id="participant_type"
+        <?php echo '1' === $fields['participant_type']['required'] ? 'required' : ''; ?>>
+<option value=""><?php esc_html_e( '— Select —', 'fc-courses' ); ?></option>
+<?php foreach ( $participant_types as $type ) : ?>
+<option value="<?php echo esc_attr( $type ); ?>" <?php selected( isset( $_POST['participant_type'] ) ? sanitize_text_field( wp_unslash( $_POST['participant_type'] ) ) : '', $type ); ?>>
+<?php echo esc_html( $type ); ?>
+</option>
+<?php endforeach; ?>
+</select>
 </td>
 </tr>
 <?php endif; ?>

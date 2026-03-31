@@ -18,9 +18,19 @@ $courses = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}fc_courses ORDER BY
 $edit_course = $edit_course_id
 	? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}fc_courses WHERE id = %d", $edit_course_id ) )
 	: null;
+
+// The form is shown by default only when editing an existing course.
+$show_form = (bool) $edit_course;
 ?>
 <div class="wrap fc-courses-wrap">
-	<h1><?php esc_html_e( 'FC Courses — Courses', 'fc-courses' ); ?></h1>
+	<h1>
+		<?php esc_html_e( 'FC Courses — Courses', 'fc-courses' ); ?>
+		<?php if ( ! $edit_course ) : ?>
+			<button type="button" id="fc-toggle-course-form" class="page-title-action fc-add-toggle">
+				<?php esc_html_e( 'Add New Course', 'fc-courses' ); ?>
+			</button>
+		<?php endif; ?>
+	</h1>
 
 	<?php if ( isset( $_GET['saved'] ) ) : ?>
 		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Saved successfully.', 'fc-courses' ); ?></p></div>
@@ -50,7 +60,7 @@ $edit_course = $edit_course_id
 						<tr>
 							<td><strong><?php echo esc_html( $c->title ); ?></strong></td>
 							<td><?php echo esc_html( ucfirst( str_replace( '_', ' ', $c->course_type ) ) ); ?></td>
-							<td><?php echo 'paid' === $c->course_type ? esc_html( $c->currency . ' ' . number_format( (float) $c->price, 2 ) ) : esc_html__( 'Free', 'fc-courses' ); ?></td>
+							<td><?php echo 'paid' === $c->course_type ? esc_html( FC_Courses_Shortcodes::currency_symbol( $c->currency ) . number_format( (float) $c->price, 2 ) ) : esc_html__( 'Free', 'fc-courses' ); ?></td>
 							<td><?php echo esc_html( ucfirst( $c->status ) ); ?></td>
 							<td>
 								<a href="<?php echo esc_url( admin_url( 'admin.php?page=fc-courses-courses&edit_course=' . $c->id ) ); ?>" class="button button-small"><?php esc_html_e( 'Edit', 'fc-courses' ); ?></a>
@@ -67,7 +77,7 @@ $edit_course = $edit_course_id
 		</div>
 
 		<!-- RIGHT: Add / Edit Course form -->
-		<div class="fc-courses-form-col">
+		<div class="fc-courses-form-col" id="fc-course-form-col" <?php echo $show_form ? '' : 'style="display:none"'; ?>>
 			<h2><?php echo $edit_course ? esc_html__( 'Edit Course', 'fc-courses' ) : esc_html__( 'Add New Course', 'fc-courses' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="fc_save_course">
@@ -94,15 +104,8 @@ $edit_course = $edit_course_id
 						</td>
 					</tr>
 					<tr>
-						<th><label for="price"><?php esc_html_e( 'Price', 'fc-courses' ); ?></label></th>
+						<th><label for="price"><?php esc_html_e( 'Price (NZ$)', 'fc-courses' ); ?></label></th>
 						<td><input type="number" name="price" id="price" step="0.01" min="0" value="<?php echo esc_attr( $edit_course->price ?? '0.00' ); ?>" class="small-text"></td>
-					</tr>
-					<tr>
-						<th><label for="currency"><?php esc_html_e( 'Currency', 'fc-courses' ); ?></label></th>
-						<td>
-							<input type="hidden" name="currency" id="currency" value="NZD">
-							<span>NZD</span>
-						</td>
 					</tr>
 					<tr>
 						<th><label for="max_enrolees"><?php esc_html_e( 'Max enrolees (0 = unlimited)', 'fc-courses' ); ?></label></th>
@@ -118,10 +121,13 @@ $edit_course = $edit_course_id
 						</td>
 					</tr>
 				</table>
+				<input type="hidden" name="currency" value="NZD">
 				<p class="submit">
 					<button type="submit" class="button button-primary"><?php echo $edit_course ? esc_html__( 'Update Course', 'fc-courses' ) : esc_html__( 'Add Course', 'fc-courses' ); ?></button>
 					<?php if ( $edit_course ) : ?>
 						<a href="<?php echo esc_url( admin_url( 'admin.php?page=fc-courses-courses' ) ); ?>" class="button"><?php esc_html_e( 'Cancel', 'fc-courses' ); ?></a>
+					<?php else : ?>
+						<button type="button" id="fc-cancel-course-form" class="button"><?php esc_html_e( 'Cancel', 'fc-courses' ); ?></button>
 					<?php endif; ?>
 				</p>
 			</form>
