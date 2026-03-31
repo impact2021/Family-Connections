@@ -39,11 +39,9 @@ class FC_Courses_Shortcodes {
 			'AUD' => 'A$',
 			'USD' => '$',
 			'CAD' => 'CA$',
-			'GBP' => '£',
-			'EUR' => '€',
 		);
 		$code = strtoupper( trim( $code ) );
-		return isset( $map[ $code ] ) ? $map[ $code ] : $code;
+		return isset( $map[ $code ] ) ? $map[ $code ] : 'NZ$';
 	}
 
 	/**
