@@ -24,13 +24,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<h2><?php esc_html_e( 'General', 'fc-courses' ); ?></h2>
 		<table class="form-table">
 			<tr>
-				<th><label for="fc_currency"><?php esc_html_e( 'Currency', 'fc-courses' ); ?></label></th>
-				<td>
-					<input type="hidden" name="fc_currency" id="fc_currency" value="NZD">
-					<span>NZD</span>
-				</td>
-			</tr>
-			<tr>
 				<th><label for="fc_admin_email"><?php esc_html_e( 'Admin notification email', 'fc-courses' ); ?></label></th>
 				<td><input type="email" name="fc_admin_email" id="fc_admin_email" class="regular-text" value="<?php echo esc_attr( get_option( 'fc_admin_email', get_option( 'admin_email' ) ) ); ?>"></td>
 			</tr>
@@ -59,34 +52,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 					) );
 					?>
 					<p class="description"><?php esc_html_e( 'Page shown after a successful Stripe payment.', 'fc-courses' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th><label for="fc_cancel_page_id"><?php esc_html_e( 'Payment Cancel Page', 'fc-courses' ); ?></label></th>
-				<td>
-					<?php
-					wp_dropdown_pages( array(
-						'name'             => 'fc_cancel_page_id',
-						'id'               => 'fc_cancel_page_id',
-						'selected'         => (int) get_option( 'fc_cancel_page_id', 0 ),
-						'show_option_none' => __( '— Select page —', 'fc-courses' ),
-					) );
-					?>
-					<p class="description"><?php esc_html_e( 'Page shown when a user cancels a Stripe payment.', 'fc-courses' ); ?></p>
-				</td>
-			</tr>
-			<tr>
-				<th><label for="fc_registration_page_id"><?php esc_html_e( 'Registration Page', 'fc-courses' ); ?></label></th>
-				<td>
-					<?php
-					wp_dropdown_pages( array(
-						'name'             => 'fc_registration_page_id',
-						'id'               => 'fc_registration_page_id',
-						'selected'         => (int) get_option( 'fc_registration_page_id', 0 ),
-						'show_option_none' => __( '— Select page —', 'fc-courses' ),
-					) );
-					?>
-					<p class="description"><?php esc_html_e( 'Page containing the [fc_course_registration] shortcode. Used by the Register button in the course calendar.', 'fc-courses' ); ?></p>
 				</td>
 			</tr>
 		</table>
@@ -152,6 +117,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<tr>
 				<th><label for="fc_bank_iban"><?php esc_html_e( 'IBAN', 'fc-courses' ); ?></label></th>
 				<td><input type="text" name="fc_bank_iban" id="fc_bank_iban" class="regular-text" value="<?php echo esc_attr( get_option( 'fc_bank_iban', '' ) ); ?>"></td>
+			</tr>
+		</table>
+
+		<!-- Participant Types -->
+		<h2><?php esc_html_e( 'Participant Types', 'fc-courses' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Enter one participant type per line. These options appear in the registration form dropdown.', 'fc-courses' ); ?></p>
+		<table class="form-table">
+			<tr>
+				<th><label for="fc_participant_types"><?php esc_html_e( 'Options', 'fc-courses' ); ?></label></th>
+				<td>
+					<?php
+					$saved_types   = get_option( 'fc_participant_types', '' );
+					$display_types = '' !== trim( $saved_types )
+						? $saved_types
+						: implode( "\n", FC_Courses_Shortcodes::get_participant_types() );
+					?>
+					<textarea name="fc_participant_types" id="fc_participant_types" rows="6" class="large-text"><?php echo esc_textarea( $display_types ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'One option per line. These appear as choices in the registration form.', 'fc-courses' ); ?></p>
+				</td>
 			</tr>
 		</table>
 

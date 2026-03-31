@@ -7,7 +7,7 @@
  * [fc_course_list]                       – card grid of all published courses
  * [fc_course_list type="paid|free"]      – filter by course type
  * [fc_course_calendar]                   – upcoming dates for all courses
- * [fc_course_calendar course_id="N"]     – upcoming dates for one course
+ * [fc_course_calendar course_id="N"]     – upcoming dates for one course; includes inline registration form
  * [fc_course_calendar limit="N"]         – limit the number of rows shown
  * [fc_course_registration]               – sign-up form (course selector included)
  * [fc_course_registration course_id="N"] – sign-up form locked to a specific course
@@ -25,6 +25,46 @@ if ( ! defined( 'ABSPATH' ) ) {
 class FC_Courses_Shortcodes {
 
 	/**
+	 * Return the NZ$ symbol (or appropriate symbol) for a currency code.
+	 *
+	 * @param string $code ISO 4217 currency code (e.g. 'NZD'). Defaults to plugin setting.
+	 * @return string Currency symbol.
+	 */
+	public static function currency_symbol( $code = '' ) {
+		if ( ! $code ) {
+			$code = get_option( 'fc_currency', 'NZD' );
+		}
+		$map = array(
+			'NZD' => 'NZ$',
+			'AUD' => 'A$',
+			'USD' => '$',
+			'CAD' => 'CA$',
+			'GBP' => '£',
+			'EUR' => '€',
+		);
+		$code = strtoupper( trim( $code ) );
+		return isset( $map[ $code ] ) ? $map[ $code ] : $code;
+	}
+
+	/**
+	 * Return the list of participant type options configured in settings.
+	 *
+	 * @return string[] Array of option strings.
+	 */
+	public static function get_participant_types() {
+		$saved = get_option( 'fc_participant_types', '' );
+		if ( ! is_string( $saved ) || '' === trim( $saved ) ) {
+			return array(
+				__( 'Clinician / Professional', 'fc-courses' ),
+				__( 'Whānau Member', 'fc-courses' ),
+				__( 'Other', 'fc-courses' ),
+			);
+		}
+		$types = array_filter( array_map( 'trim', explode( "\n", $saved ) ) );
+		return array_values( $types );
+	}
+
+	/**
 	 * Return the configuration for every registration form field.
 	 *
 	 * Each entry has:
@@ -40,13 +80,13 @@ class FC_Courses_Shortcodes {
 	 */
 	public static function get_form_fields() {
 		$defaults = array(
-			'first_name'   => array(
+			'first_name'       => array(
 				'default_label' => __( 'First Name', 'fc-courses' ),
 				'label'         => __( 'First Name', 'fc-courses' ),
 				'enabled'       => '1',
 				'required'      => '1',
 			),
-			'last_name'    => array(
+			'last_name'        => array(
 				'default_label' => __( 'Last Name', 'fc-courses' ),
 				'label'         => __( 'Last Name', 'fc-courses' ),
 				'enabled'       => '1',
@@ -58,17 +98,23 @@ class FC_Courses_Shortcodes {
 				'enabled'       => '1',
 				'required'      => '1',
 			),
-			'phone'        => array(
+			'phone'            => array(
 				'default_label' => __( 'Phone', 'fc-courses' ),
 				'label'         => __( 'Phone', 'fc-courses' ),
 				'enabled'       => '1',
 				'required'      => '0',
 			),
-			'organisation' => array(
+			'organisation'     => array(
 				'default_label' => __( 'Organisation', 'fc-courses' ),
 				'label'         => __( 'Organisation', 'fc-courses' ),
 				'enabled'       => '1',
 				'required'      => '0',
+			),
+			'participant_type' => array(
+				'default_label' => __( 'Participant Type', 'fc-courses' ),
+				'label'         => __( 'Participant Type', 'fc-courses' ),
+				'enabled'       => '1',
+				'required'      => '1',
 			),
 		);
 
@@ -83,9 +129,9 @@ class FC_Courses_Shortcodes {
 				if ( ! empty( $saved[ $key ]['label'] ) ) {
 					$defaults[ $key ]['label'] = $saved[ $key ]['label'];
 				}
-				// Visibility and required are only saved/honoured for phone & organisation;
+				// Visibility and required are only saved/honoured for phone, organisation, and participant_type;
 				// first_name / last_name / email are always on and always required.
-				if ( in_array( $key, array( 'phone', 'organisation' ), true ) ) {
+				if ( in_array( $key, array( 'phone', 'organisation', 'participant_type' ), true ) ) {
 					$defaults[ $key ]['enabled']  = isset( $saved[ $key ]['enabled'] ) ? $saved[ $key ]['enabled'] : $default['enabled'];
 					$defaults[ $key ]['required'] = isset( $saved[ $key ]['required'] ) ? $saved[ $key ]['required'] : $default['required'];
 				}
@@ -143,6 +189,7 @@ class FC_Courses_Shortcodes {
 				'nonce'          => wp_create_nonce( 'fc_courses_public_nonce' ),
 				'stripeKey'      => $stripe_key,
 				'currency'       => strtolower( get_option( 'fc_currency', 'NZD' ) ),
+				'currencySymbol' => self::currency_symbol(),
 				'i18n'           => array(
 					'processing'   => __( 'Processing…', 'fc-courses' ),
 					'invalidCode'  => __( 'Invalid or expired discount code.', 'fc-courses' ),
@@ -190,6 +237,9 @@ class FC_Courses_Shortcodes {
 	/**
 	 * Render a table of upcoming course dates.
 	 *
+	 * When course_id is provided, an inline registration form is embedded and shown
+	 * when the visitor clicks a Register button — no separate registration page needed.
+	 *
 	 * Attributes:
 	 *  course_id  int   Limit to a specific course (0 = all courses).
 	 *  limit      int   Maximum number of rows to show (0 = unlimited).
@@ -235,8 +285,23 @@ class FC_Courses_Shortcodes {
 			? $wpdb->get_results( $wpdb->prepare( $sql, $args ) ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			: $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		$reg_page_id      = (int) get_option( 'fc_registration_page_id', 0 );
-		$registration_url = $reg_page_id > 0 ? get_permalink( $reg_page_id ) : '';
+		// Load the course object when a specific course_id is given (used by the inline form).
+		$calendar_course = null;
+		if ( $course_id > 0 ) {
+			$calendar_course = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}fc_courses WHERE id = %d AND status = 'publish'", $course_id ) );
+		}
+
+		// Handle inline registration form submission.
+		$form_message = '';
+		$form_error   = '';
+		if ( isset( $_POST['fc_register_nonce'] ) && isset( $_POST['fc_inline_calendar'] ) ) {
+			$result       = $this->process_registration();
+			$form_message = $result['message'] ?? '';
+			$form_error   = $result['error'] ?? '';
+		}
+
+		$fields           = self::get_form_fields();
+		$participant_types = self::get_participant_types();
 
 		ob_start();
 		include FC_COURSES_PLUGIN_DIR . 'public/views/course-calendar.php';
@@ -305,7 +370,8 @@ class FC_Courses_Shortcodes {
 			$form_error   = $result['error'] ?? '';
 		}
 
-		$fields = self::get_form_fields();
+		$fields            = self::get_form_fields();
+		$participant_types = self::get_participant_types();
 
 		ob_start();
 		include FC_COURSES_PLUGIN_DIR . 'public/views/registration-form.php';
@@ -324,27 +390,39 @@ class FC_Courses_Shortcodes {
 
 		global $wpdb;
 
-		$course_date_id  = absint( $_POST['course_date_id'] ?? 0 );
-		$first_name      = sanitize_text_field( wp_unslash( $_POST['first_name'] ?? '' ) );
-		$last_name       = sanitize_text_field( wp_unslash( $_POST['last_name'] ?? '' ) );
-		$email           = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
-		$phone           = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
-		$organisation    = sanitize_text_field( wp_unslash( $_POST['organisation'] ?? '' ) );
-		$payment_method  = in_array( $_POST['payment_method'] ?? '', array( 'stripe', 'bank_transfer' ), true ) ? sanitize_text_field( wp_unslash( $_POST['payment_method'] ) ) : 'bank_transfer';
-		$discount_code   = strtoupper( sanitize_text_field( wp_unslash( $_POST['discount_code'] ?? '' ) ) );
+		$course_date_id   = absint( $_POST['course_date_id'] ?? 0 );
+		$first_name       = sanitize_text_field( wp_unslash( $_POST['first_name'] ?? '' ) );
+		$last_name        = sanitize_text_field( wp_unslash( $_POST['last_name'] ?? '' ) );
+		$email            = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+		$phone            = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
+		$organisation     = sanitize_text_field( wp_unslash( $_POST['organisation'] ?? '' ) );
+		$participant_type = sanitize_text_field( wp_unslash( $_POST['participant_type'] ?? '' ) );
+		$payment_method   = in_array( $_POST['payment_method'] ?? '', array( 'stripe', 'bank_transfer' ), true ) ? sanitize_text_field( wp_unslash( $_POST['payment_method'] ) ) : 'bank_transfer';
+		$discount_code    = strtoupper( sanitize_text_field( wp_unslash( $_POST['discount_code'] ?? '' ) ) );
 
 		// Validate required fields.
 		if ( ! $first_name || ! $last_name || ! is_email( $email ) || ! $course_date_id ) {
 			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
 		}
 
-		// Validate dynamically required fields (phone, organisation).
+		// Validate dynamically required fields (phone, organisation, participant_type).
 		$fields = self::get_form_fields();
 		if ( '1' === $fields['phone']['required'] && '1' === $fields['phone']['enabled'] && ! $phone ) {
 			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
 		}
 		if ( '1' === $fields['organisation']['required'] && '1' === $fields['organisation']['enabled'] && ! $organisation ) {
 			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
+		}
+		if ( '1' === $fields['participant_type']['required'] && '1' === $fields['participant_type']['enabled'] && ! $participant_type ) {
+			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
+		}
+
+		// Validate participant type is one of the allowed values (if field is enabled).
+		if ( '1' === $fields['participant_type']['enabled'] && $participant_type ) {
+			$allowed_types = self::get_participant_types();
+			if ( ! in_array( $participant_type, $allowed_types, true ) ) {
+				return array( 'error' => __( 'Please select a valid participant type.', 'fc-courses' ) );
+			}
 		}
 
 		// Load course date.
@@ -407,19 +485,22 @@ class FC_Courses_Shortcodes {
 				'email'            => $email,
 				'phone'            => $phone,
 				'organisation'     => $organisation,
+				'participant_type' => $participant_type,
 				'payment_method'   => $payment_method,
 				'payment_status'   => 'pending',
 				'discount_code_id' => $discount_code_id,
 				'amount_paid'      => $amount,
 			),
-			array( '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%f' )
+			array( '%d', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%f' )
 		);
 		$enrollment_id = $wpdb->insert_id;
 
 		// Handle payment routing.
 		if ( 'stripe' === $payment_method && $amount > 0 ) {
-			$payments = new FC_Courses_Payments();
-			$checkout_url = $payments->create_stripe_checkout( $enrollment_id, $course, $amount );
+			$payments   = new FC_Courses_Payments();
+			// Use the current page as the cancel URL (user returns here if they cancel payment).
+			$cancel_url = get_permalink( get_queried_object_id() ) ?: home_url( '/' );
+			$checkout_url = $payments->create_stripe_checkout( $enrollment_id, $course, $amount, $cancel_url );
 			if ( $checkout_url ) {
 				wp_safe_redirect( $checkout_url );
 				exit;
@@ -497,8 +578,8 @@ class FC_Courses_Shortcodes {
 		$body .= '<p>' . sprintf( esc_html__( 'Thank you for registering for <strong>%s</strong>.', 'fc-courses' ), esc_html( $course->title ) ) . '</p>';
 		$body .= '<p>' . esc_html__( 'Course date:', 'fc-courses' ) . ' ' . esc_html( wp_date( get_option( 'date_format' ), strtotime( $course_date->start_date ) ) ) . '</p>';
 		if ( $amount > 0 ) {
-			$currency = strtoupper( get_option( 'fc_currency', 'NZD' ) );
-			$body    .= '<p>' . sprintf( esc_html__( 'Amount due: %s %s', 'fc-courses' ), esc_html( $currency ), esc_html( number_format( $amount, 2 ) ) ) . '</p>';
+			$currency_symbol = self::currency_symbol( $course->currency );
+			$body           .= '<p>' . sprintf( esc_html__( 'Amount due: %s%s', 'fc-courses' ), esc_html( $currency_symbol ), esc_html( number_format( $amount, 2 ) ) ) . '</p>';
 		}
 		$body .= $bank_html;
 		$body .= '<p>' . esc_html__( 'We look forward to seeing you!', 'fc-courses' ) . '</p>';

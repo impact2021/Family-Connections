@@ -26,7 +26,7 @@ if ( ! $courses ) {
 		<?php endif; ?>
 		<p class="fc-course-price">
 			<?php if ( 'paid' === $c->course_type ) : ?>
-				<strong><?php echo esc_html( $c->currency . ' ' . number_format( (float) $c->price, 2 ) ); ?></strong>
+				<strong><?php echo esc_html( FC_Courses_Shortcodes::currency_symbol( $c->currency ) . number_format( (float) $c->price, 2 ) ); ?></strong>
 			<?php else : ?>
 				<strong><?php esc_html_e( 'Free', 'fc-courses' ); ?></strong>
 			<?php endif; ?>

@@ -59,9 +59,19 @@ $nz_cities = apply_filters( 'fc_courses_nz_cities', array(
 	'Invercargill',
 	'Other',
 ) );
+
+// The form is shown by default only when editing an existing date.
+$show_form = (bool) $edit_date;
 ?>
 <div class="wrap fc-courses-wrap">
-	<h1><?php esc_html_e( 'FC Courses — Course Dates', 'fc-courses' ); ?></h1>
+	<h1>
+		<?php esc_html_e( 'FC Courses — Course Dates', 'fc-courses' ); ?>
+		<?php if ( ! $edit_date ) : ?>
+			<button type="button" id="fc-toggle-date-form" class="page-title-action fc-add-toggle">
+				<?php esc_html_e( 'Add New Date', 'fc-courses' ); ?>
+			</button>
+		<?php endif; ?>
+	</h1>
 
 	<?php if ( isset( $_GET['saved'] ) ) : ?>
 		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Saved successfully.', 'fc-courses' ); ?></p></div>
@@ -130,7 +140,7 @@ $nz_cities = apply_filters( 'fc_courses_nz_cities', array(
 		</div>
 
 		<!-- RIGHT: Add / Edit form -->
-		<div class="fc-courses-form-col">
+		<div class="fc-courses-form-col" id="fc-date-form-col" <?php echo $show_form ? '' : 'style="display:none"'; ?>>
 			<h2><?php echo $edit_date ? esc_html__( 'Edit Date', 'fc-courses' ) : esc_html__( 'Add New Date', 'fc-courses' ); ?></h2>
 			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
 				<input type="hidden" name="action" value="fc_save_course_date">
@@ -195,6 +205,8 @@ $nz_cities = apply_filters( 'fc_courses_nz_cities', array(
 					<button type="submit" class="button button-primary"><?php echo $edit_date ? esc_html__( 'Update Date', 'fc-courses' ) : esc_html__( 'Add Date', 'fc-courses' ); ?></button>
 					<?php if ( $edit_date ) : ?>
 						<a href="<?php echo esc_url( admin_url( 'admin.php?page=fc-courses-course-dates&course_id=' . $edit_date->course_id ) ); ?>" class="button"><?php esc_html_e( 'Cancel', 'fc-courses' ); ?></a>
+					<?php else : ?>
+						<button type="button" id="fc-cancel-date-form" class="button"><?php esc_html_e( 'Cancel', 'fc-courses' ); ?></button>
 					<?php endif; ?>
 				</p>
 			</form>

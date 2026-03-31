@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class FC_Courses_Database {
 
 	/** Current schema version. Bump when altering tables. */
-	const SCHEMA_VERSION = 1;
+	const SCHEMA_VERSION = 2;
 
 	/** Option key used to track installed schema version. */
 	const OPTION_KEY = 'fc_courses_db_version';
@@ -101,6 +101,7 @@ class FC_Courses_Database {
 			email            VARCHAR(255)        NOT NULL DEFAULT '',
 			phone            VARCHAR(30)         DEFAULT '',
 			organisation     VARCHAR(255)        DEFAULT '',
+			participant_type VARCHAR(100)        NOT NULL DEFAULT '',
 			payment_method   VARCHAR(30)         NOT NULL DEFAULT 'bank_transfer',
 			payment_status   VARCHAR(30)         NOT NULL DEFAULT 'pending',
 			discount_code_id BIGINT(20) UNSIGNED DEFAULT NULL,

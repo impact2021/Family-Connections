@@ -178,13 +178,9 @@ class FC_Courses_Payments {
 				wp_safe_redirect( get_permalink( $success_page_id ) );
 				exit;
 			}
-		} elseif ( 'cancel' === $action ) {
-			$cancel_page_id = (int) get_option( 'fc_cancel_page_id', 0 );
-			if ( $cancel_page_id ) {
-				wp_safe_redirect( get_permalink( $cancel_page_id ) );
-				exit;
-			}
 		}
+		// For 'cancel', Stripe has already redirected the user back to the cancel_url
+		// that was passed when creating the checkout session — no additional redirect needed.
 	}
 
 	// ------------------------------------------------------------------
@@ -197,9 +193,10 @@ class FC_Courses_Payments {
 	 * @param int    $enrollment_id Enrollment ID.
 	 * @param object $course        Course row.
 	 * @param float  $amount        Amount in major currency units (e.g. NZD 15.00).
+	 * @param string $cancel_url    URL to redirect to if the user cancels. Defaults to home URL.
 	 * @return string|false Checkout URL or false on failure.
 	 */
-	public function create_stripe_checkout( $enrollment_id, $course, $amount ) {
+	public function create_stripe_checkout( $enrollment_id, $course, $amount, $cancel_url = '' ) {
 		$secret_key = get_option( 'fc_stripe_secret_key', '' );
 		if ( empty( $secret_key ) ) {
 			return false;
@@ -211,8 +208,14 @@ class FC_Courses_Payments {
 		// Amount must be in smallest currency unit (cents for NZD).
 		$amount_cents = (int) round( $amount * 100 );
 
-		$success_url = add_query_arg( array( 'fc_stripe' => 'success', 'enrollment_id' => $enrollment_id ), home_url( '/' ) );
-		$cancel_url  = add_query_arg( array( 'fc_stripe' => 'cancel' ), home_url( '/' ) );
+		$success_page_id = (int) get_option( 'fc_success_page_id', 0 );
+		$success_url     = $success_page_id > 0
+			? add_query_arg( array( 'fc_stripe' => 'success', 'enrollment_id' => $enrollment_id ), get_permalink( $success_page_id ) )
+			: add_query_arg( array( 'fc_stripe' => 'success', 'enrollment_id' => $enrollment_id ), home_url( '/' ) );
+
+		if ( ! $cancel_url ) {
+			$cancel_url = home_url( '/' );
+		}
 
 		$body = array(
 			'payment_method_types' => array( 'card' ),
@@ -341,7 +344,7 @@ class FC_Courses_Payments {
 			$label      = (int) $code_row->discount_value . '% ' . __( 'discount', 'fc-courses' );
 		} else {
 			$discounted = max( 0, $price - (float) $code_row->discount_value );
-			$label      = get_option( 'fc_currency', 'NZD' ) . number_format( (float) $code_row->discount_value, 2 ) . ' ' . __( 'discount', 'fc-courses' );
+			$label      = FC_Courses_Shortcodes::currency_symbol() . number_format( (float) $code_row->discount_value, 2 ) . ' ' . __( 'discount', 'fc-courses' );
 		}
 
 		wp_send_json_success( array(

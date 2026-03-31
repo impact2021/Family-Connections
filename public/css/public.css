@@ -201,3 +201,29 @@
 		max-width: 100%;
 	}
 }
+
+/* ── Inline calendar registration form ──────────────────────── */
+.fc-calendar-register-wrap {
+margin-top: 24px;
+padding: 20px 24px;
+background: #f9f9f9;
+border: 1px solid #ddd;
+border-radius: 4px;
+}
+
+.fc-cal-reg-header {
+margin-bottom: 16px;
+}
+
+.fc-cal-reg-header h3 {
+margin: 0 0 4px;
+}
+
+.fc-cal-reg-date {
+color: #555;
+margin: 0 0 8px;
+}
+
+.fc-cal-inline-form .fc-form-table th {
+width: 180px;
+}
