@@ -54,6 +54,34 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<p class="description"><?php esc_html_e( 'Page shown after a successful Stripe payment.', 'fc-courses' ); ?></p>
 				</td>
 			</tr>
+			<tr>
+				<th><label for="fc_full_form_page_id"><?php esc_html_e( 'FC Full Enrolment Form Page', 'fc-courses' ); ?></label></th>
+				<td>
+					<?php
+					wp_dropdown_pages( array(
+						'name'             => 'fc_full_form_page_id',
+						'id'               => 'fc_full_form_page_id',
+						'selected'         => (int) get_option( 'fc_full_form_page_id', 0 ),
+						'show_option_none' => __( '— Select page —', 'fc-courses' ),
+					) );
+					?>
+					<p class="description"><?php esc_html_e( 'Page containing the Family Connections full enrolment form. Its URL is available as {full_form_url} in the FC Approval email.', 'fc-courses' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th><label for="fc_leader_full_form_page_id"><?php esc_html_e( 'Trainers Full Enrolment Form Page', 'fc-courses' ); ?></label></th>
+				<td>
+					<?php
+					wp_dropdown_pages( array(
+						'name'             => 'fc_leader_full_form_page_id',
+						'id'               => 'fc_leader_full_form_page_id',
+						'selected'         => (int) get_option( 'fc_leader_full_form_page_id', 0 ),
+						'show_option_none' => __( '— Select page —', 'fc-courses' ),
+					) );
+					?>
+					<p class="description"><?php esc_html_e( 'Page containing the Leaders Training full enrolment form. Its URL is available as {full_form_url} in the Leader Approval email.', 'fc-courses' ); ?></p>
+				</td>
+			</tr>
 		</table>
 
 		<!-- Stripe -->
@@ -191,11 +219,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 			echo wp_kses(
 				sprintf(
 					/* translators: placeholder tags */
-					__( 'Available placeholders: %1$s (applicant\'s name), %2$s (applicant\'s email), %3$s (unique approval code — included automatically in approval emails), %4$s (site name).', 'fc-courses' ),
+					__( 'Available placeholders: %1$s (applicant\'s name), %2$s (applicant\'s email), %3$s (unique approval code — included automatically in approval emails), %4$s (site name), %5$s (URL of the FC Full Enrolment Form Page set above).', 'fc-courses' ),
 					'<code>{name}</code>',
 					'<code>{email}</code>',
 					'<code>{code}</code>',
-					'<code>{site_name}</code>'
+					'<code>{site_name}</code>',
+					'<code>{full_form_url}</code>'
 				),
 				array( 'code' => array() )
 			);
@@ -240,11 +269,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 			echo wp_kses(
 				sprintf(
 					/* translators: placeholder tags */
-					__( 'Same placeholders as FC emails: %1$s, %2$s, %3$s (unique approval code), %4$s.', 'fc-courses' ),
+					__( 'Same placeholders as FC emails: %1$s, %2$s, %3$s (unique approval code), %4$s, %5$s (URL of the Trainers Full Enrolment Form Page set above).', 'fc-courses' ),
 					'<code>{name}</code>',
 					'<code>{email}</code>',
 					'<code>{code}</code>',
-					'<code>{site_name}</code>'
+					'<code>{site_name}</code>',
+					'<code>{full_form_url}</code>'
 				),
 				array( 'code' => array() )
 			);
