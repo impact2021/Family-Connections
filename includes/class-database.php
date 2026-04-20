@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class FC_Courses_Database {
 
 	/** Current schema version. Bump when altering tables. */
-	const SCHEMA_VERSION = 2;
+	const SCHEMA_VERSION = 3;
 
 	/** Option key used to track installed schema version. */
 	const OPTION_KEY = 'fc_courses_db_version';
