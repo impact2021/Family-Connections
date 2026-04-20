@@ -56,4 +56,6 @@ add_action( 'plugins_loaded', 'fc_courses_init' );
 
 // Activation / deactivation hooks.
 register_activation_hook( __FILE__, array( 'FC_Courses_Database', 'install' ) );
+register_activation_hook( __FILE__, array( 'FC_Courses_Roles', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'FC_Courses_Plugin', 'deactivate' ) );
+register_deactivation_hook( __FILE__, array( 'FC_Courses_Roles', 'deactivate' ) );

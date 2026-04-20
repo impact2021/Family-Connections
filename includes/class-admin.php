@@ -43,7 +43,7 @@ class FC_Courses_Admin {
 	 * Register the top-level "FC Courses" menu and all subpages.
 	 */
 	public function register_menus() {
-		$capability = 'manage_options';
+		$capability = FC_Courses_Roles::CAP;
 		$icon       = 'dashicons-welcome-learn-more';
 
 		add_menu_page(
@@ -244,7 +244,7 @@ class FC_Courses_Admin {
 	 */
 	public function handle_save_course() {
 		check_admin_referer( 'fc_save_course' );
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
 			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
 		}
 
@@ -281,7 +281,7 @@ class FC_Courses_Admin {
 	 */
 	public function handle_delete_course() {
 		check_admin_referer( 'fc_delete_course' );
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
 			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
 		}
 
@@ -304,7 +304,7 @@ class FC_Courses_Admin {
 	 */
 	public function handle_save_course_date() {
 		check_admin_referer( 'fc_save_course_date' );
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
 			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
 		}
 
@@ -346,7 +346,7 @@ class FC_Courses_Admin {
 	 */
 	public function handle_delete_course_date() {
 		check_admin_referer( 'fc_delete_course_date' );
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
 			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
 		}
 
@@ -370,7 +370,7 @@ class FC_Courses_Admin {
 	 */
 	public function handle_save_discount_code() {
 		check_admin_referer( 'fc_save_discount_code' );
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
 			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
 		}
 
@@ -414,7 +414,7 @@ class FC_Courses_Admin {
 	 */
 	public function handle_delete_discount_code() {
 		check_admin_referer( 'fc_delete_discount_code' );
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
 			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
 		}
 
@@ -437,7 +437,7 @@ class FC_Courses_Admin {
 	 */
 	public function handle_update_enrollment() {
 		check_admin_referer( 'fc_update_enrollment' );
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
 			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
 		}
 
@@ -468,7 +468,7 @@ class FC_Courses_Admin {
 	 */
 	public function handle_delete_enrollment() {
 		check_admin_referer( 'fc_delete_enrollment' );
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
 			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
 		}
 
@@ -492,7 +492,7 @@ class FC_Courses_Admin {
 	 */
 	public function handle_update_applicant() {
 		check_admin_referer( 'fc_update_applicant' );
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
 			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
 		}
 
@@ -531,12 +531,12 @@ class FC_Courses_Admin {
 	 */
 	public function handle_delete_applicant() {
 		check_admin_referer( 'fc_delete_applicant' );
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
 			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
 		}
 
 		global $wpdb;
-		$id = absint( $_GET['applicant_id'] ?? 0 );
+		$id = absint( wp_unslash( $_GET['applicant_id'] ?? 0 ) );
 		if ( $id > 0 ) {
 			$wpdb->delete( $wpdb->prefix . 'fc_applicants', array( 'id' => $id ), array( '%d' ) );
 		}
@@ -579,8 +579,8 @@ class FC_Courses_Admin {
 			$template
 		);
 
-		// Convert newlines to <br> if the body doesn't already contain HTML tags.
-		if ( ! preg_match( '/<[a-z][\s\S]*>/i', $body ) ) {
+		// Convert newlines to <br> if the body doesn't already contain block-level HTML tags.
+		if ( ! preg_match( '/<(p|ul|ol|h[1-6]|div|br)[^>]*>/i', $body ) ) {
 			$body = nl2br( $body );
 		}
 
@@ -596,7 +596,7 @@ class FC_Courses_Admin {
 	 */
 	public function handle_save_settings() {
 		check_admin_referer( 'fc_save_settings' );
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
 			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
 		}
 
