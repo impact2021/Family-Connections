@@ -813,18 +813,35 @@ class FC_Courses_Shortcodes {
 			return array( 'error' => __( 'This code has already been used or is no longer valid.', 'fc-courses' ) );
 		}
 
-		$full_name    = sanitize_text_field( wp_unslash( $_POST['full_name'] ?? '' ) );
-		$town_region  = sanitize_text_field( wp_unslash( $_POST['town_region'] ?? '' ) );
-		$phone        = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
-		$email        = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
-		$relationship = sanitize_text_field( wp_unslash( $_POST['relationship'] ?? '' ) );
-		$ethnicity    = isset( $_POST['ethnicity'] ) && is_array( $_POST['ethnicity'] )
+		$full_name             = sanitize_text_field( wp_unslash( $_POST['full_name'] ?? '' ) );
+		$town_region           = sanitize_text_field( wp_unslash( $_POST['town_region'] ?? '' ) );
+		$phone                 = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
+		$email                 = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+		$loved_one_age         = isset( $_POST['loved_one_age'] ) ? absint( $_POST['loved_one_age'] ) : 0;
+		$mental_health_current = sanitize_text_field( wp_unslash( $_POST['mental_health_current'] ?? '' ) );
+		$mental_health_past    = sanitize_text_field( wp_unslash( $_POST['mental_health_past'] ?? '' ) );
+		$relationship          = sanitize_text_field( wp_unslash( $_POST['relationship'] ?? '' ) );
+		$ethnicity             = isset( $_POST['ethnicity'] ) && is_array( $_POST['ethnicity'] )
 			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['ethnicity'] ) )
 			: array();
-		$coc_agreed   = ! empty( $_POST['coc_agreed'] );
+		$coc_agreed            = ! empty( $_POST['coc_agreed'] );
+
+		$allowed_mh = array( 'yes', 'no', 'unsure' );
 
 		if ( ! $full_name || ! $town_region || ! $phone || ! is_email( $email ) || ! $relationship ) {
 			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
+		}
+
+		if ( $loved_one_age <= 0 ) {
+			return array( 'error' => __( 'Please enter the age of your loved one.', 'fc-courses' ) );
+		}
+
+		if ( ! in_array( $mental_health_current, $allowed_mh, true ) ) {
+			return array( 'error' => __( 'Please answer whether your loved one is currently under a public mental health service.', 'fc-courses' ) );
+		}
+
+		if ( 'yes' !== $mental_health_current && ! in_array( $mental_health_past, $allowed_mh, true ) ) {
+			return array( 'error' => __( 'Please answer whether your loved one has previously been under a public mental health service.', 'fc-courses' ) );
 		}
 
 		$allowed_relationships = array( 'child', 'romantic_partner', 'ex_partner_co_parent', 'sibling', 'parent', 'friend', 'other' );
@@ -842,20 +859,24 @@ class FC_Courses_Shortcodes {
 		} ) );
 
 		global $wpdb;
+		$mh_past_to_save = ( 'yes' === $mental_health_current ) ? '' : $mental_health_past;
 		$wpdb->update(
 			$wpdb->prefix . 'fc_applicants',
 			array(
-				'full_name'    => $full_name,
-				'town_region'  => $town_region,
-				'phone'        => $phone,
-				'email'        => $email,
-				'relationship' => $relationship,
-				'ethnicity'    => implode( ', ', $ethnicity ),
-				'coc_agreed'   => 1,
-				'status'       => 'enrolled',
+				'full_name'             => $full_name,
+				'town_region'           => $town_region,
+				'phone'                 => $phone,
+				'email'                 => $email,
+				'loved_one_age'         => $loved_one_age,
+				'mental_health_current' => $mental_health_current,
+				'mental_health_past'    => $mh_past_to_save,
+				'relationship'          => $relationship,
+				'ethnicity'             => implode( ', ', $ethnicity ),
+				'coc_agreed'            => 1,
+				'status'                => 'enrolled',
 			),
 			array( 'id' => $applicant->id ),
-			array( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s' ),
+			array( '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%d', '%s' ),
 			array( '%d' )
 		);
 
