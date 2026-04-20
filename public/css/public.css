@@ -227,3 +227,178 @@ margin: 0 0 8px;
 .fc-cal-inline-form .fc-form-table th {
 width: 180px;
 }
+
+/* ── Expression of interest form ────────────────────────────── */
+.fc-eoi-wrap {
+	max-width: 700px;
+	margin: 24px 0;
+}
+
+.fc-eoi-form .fc-form-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin-bottom: 16px;
+}
+
+.fc-eoi-form .fc-form-table th,
+.fc-eoi-form .fc-form-table td {
+	padding: 10px 12px;
+	vertical-align: top;
+	border-bottom: 1px solid #e8e8e8;
+}
+
+.fc-eoi-form .fc-form-table th {
+	width: 38%;
+	text-align: right;
+	font-weight: 600;
+	padding-right: 20px;
+	color: #333;
+	padding-top: 13px;
+}
+
+.fc-eoi-form .fc-form-table td {
+	width: 62%;
+}
+
+.fc-eoi-form .fc-form-table input[type="text"],
+.fc-eoi-form .fc-form-table input[type="email"],
+.fc-eoi-form .fc-form-table input[type="tel"],
+.fc-eoi-form .fc-form-table select {
+	width: 100%;
+	max-width: 380px;
+	padding: 7px 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 1em;
+}
+
+.fc-field-hint {
+	display: block;
+	font-size: 0.85em;
+	font-weight: normal;
+	color: #666;
+}
+
+.fc-ethnicity-options {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.fc-checkbox-option {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	cursor: pointer;
+	font-size: 0.95em;
+	line-height: 1.4;
+}
+
+.fc-checkbox-option input[type="checkbox"] {
+	margin-top: 2px;
+	flex-shrink: 0;
+}
+
+.fc-coc-wrap {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+}
+
+.fc-coc-label {
+	font-weight: 600;
+}
+
+@media ( max-width: 560px ) {
+	.fc-eoi-form .fc-form-table,
+	.fc-eoi-form .fc-form-table tbody,
+	.fc-eoi-form .fc-form-table tr,
+	.fc-eoi-form .fc-form-table th,
+	.fc-eoi-form .fc-form-table td {
+		display: block;
+		width: 100%;
+	}
+
+	.fc-eoi-form .fc-form-table th {
+		text-align: left;
+		padding-right: 12px;
+		padding-bottom: 2px;
+		padding-top: 10px;
+		border-bottom: none;
+	}
+
+	.fc-eoi-form .fc-form-table td {
+		padding-top: 2px;
+	}
+
+	.fc-eoi-form .fc-form-table input[type="text"],
+	.fc-eoi-form .fc-form-table input[type="email"],
+	.fc-eoi-form .fc-form-table input[type="tel"],
+	.fc-eoi-form .fc-form-table select {
+		max-width: 100%;
+	}
+}
+
+/* ── Code of Conduct modal ───────────────────────────────────── */
+.fc-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 99999;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.fc-modal[hidden] {
+	display: none;
+}
+
+.fc-modal-overlay {
+	position: absolute;
+	inset: 0;
+	background: rgba( 0, 0, 0, 0.55 );
+	cursor: pointer;
+}
+
+.fc-modal-dialog {
+	position: relative;
+	background: #fff;
+	border-radius: 6px;
+	width: 90%;
+	max-width: 680px;
+	max-height: 82vh;
+	display: flex;
+	flex-direction: column;
+	box-shadow: 0 8px 32px rgba( 0, 0, 0, 0.25 );
+}
+
+.fc-modal-body {
+	padding: 28px 32px;
+	overflow-y: auto;
+	flex: 1;
+	font-size: 0.95em;
+	line-height: 1.6;
+}
+
+.fc-modal-footer {
+	padding: 14px 32px;
+	border-top: 1px solid #e0e0e0;
+	text-align: right;
+}
+
+.fc-modal-close {
+	position: absolute;
+	top: 10px;
+	right: 14px;
+	background: none;
+	border: none;
+	font-size: 1.6em;
+	line-height: 1;
+	cursor: pointer;
+	color: #666;
+	padding: 4px 8px;
+}
+
+.fc-modal-close:hover {
+	color: #000;
+}

@@ -140,12 +140,31 @@ class FC_Courses_Shortcodes {
 	}
 
 	/**
+	 * Return the default approval email body (used as fallback in settings).
+	 *
+	 * @return string
+	 */
+	public static function get_default_approval_email() {
+		return __( "Dear {name},\n\nWe are delighted to let you know that your expression of interest in the Family Connections course has been approved.\n\nWe will be in touch shortly with details about upcoming course dates and next steps for enrolment.\n\nThank you for reaching out, and we look forward to welcoming you to the programme.\n\nWarm regards,\nThe Family Connections Team", 'fc-courses' );
+	}
+
+	/**
+	 * Return the default rejection email body (used as fallback in settings).
+	 *
+	 * @return string
+	 */
+	public static function get_default_rejection_email() {
+		return __( "Dear {name},\n\nThank you for your interest in the Family Connections course.\n\nUnfortunately, we are unable to approve your application at this time. This may be because the course is currently full, or because we feel another programme may be better suited to your needs.\n\nWe encourage you to reapply in the future or contact us if you would like to discuss your options further.\n\nWarm regards,\nThe Family Connections Team", 'fc-courses' );
+	}
+
+	/**
 	 * Register hooks.
 	 */
 	public function init() {
 		add_shortcode( 'fc_course_registration', array( $this, 'registration_form' ) );
 		add_shortcode( 'fc_course_list', array( $this, 'course_list' ) );
 		add_shortcode( 'fc_course_calendar', array( $this, 'course_calendar' ) );
+		add_shortcode( 'fc_expression_of_interest', array( $this, 'expression_of_interest' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
@@ -514,6 +533,168 @@ class FC_Courses_Shortcodes {
 			: __( 'Thank you! Your registration has been received.', 'fc-courses' );
 
 		return array( 'message' => $message );
+	}
+
+	/**
+	 * Return the list of ethnicity options configured in settings.
+	 *
+	 * @return string[] Array of option strings.
+	 */
+	public static function get_ethnicity_options() {
+		$saved = get_option( 'fc_ethnicity_options', '' );
+		if ( ! is_string( $saved ) || '' === trim( $saved ) ) {
+			return array(
+				__( 'NZ European / Pākehā', 'fc-courses' ),
+				__( 'Māori', 'fc-courses' ),
+				__( 'Samoan', 'fc-courses' ),
+				__( 'Tongan', 'fc-courses' ),
+				__( 'Cook Island Māori', 'fc-courses' ),
+				__( 'Niuean', 'fc-courses' ),
+				__( 'Fijian', 'fc-courses' ),
+				__( 'Indian', 'fc-courses' ),
+				__( 'Chinese', 'fc-courses' ),
+				__( 'Other Asian', 'fc-courses' ),
+				__( 'Other Pacific peoples', 'fc-courses' ),
+				__( 'Middle Eastern / Latin American / African', 'fc-courses' ),
+				__( 'Other ethnicity', 'fc-courses' ),
+			);
+		}
+		$options = array_filter( array_map( 'trim', explode( "\n", $saved ) ) );
+		return array_values( $options );
+	}
+
+	/**
+	 * Return the Code of Conduct text configured in settings.
+	 *
+	 * @return string
+	 */
+	public static function get_code_of_conduct() {
+		$saved = get_option( 'fc_code_of_conduct', '' );
+		if ( '' !== trim( $saved ) ) {
+			return $saved;
+		}
+		return "Family Connections™ Participant Code of Conduct\n\nFamily Connections™ is taught in a confidential, supportive environment conducive to learning skills to support your relationship with a person with BPD or its symptoms, including emotion dysregulation. Our code of conduct is the standard through which we honour and respect the needs of our participants and co-leaders. To enrol in a Family Connections™ course, we ask that you agree to abide by our code of conduct.\n\nWhat we ask of you as a Family Connections™ program participant:\n\n• Maintain the confidentiality of all participants and leaders by not discussing their personal information and situations outside the program. If the course is being delivered over telehealth please don't allow people who are not registered participants to listen in to the session. Everyone shares personal histories and issues concerning themselves, their families and the person with BPD they love. No recordings are permitted.\n• Plan to attend all 12 classes since each class builds on the previous one. Weekly engagement also increases trust and reinforces skills.\n• Respect the experiences and feelings of each participant and honour their time to share.\n• Respect each others' cultural, political and religious differences.\n• Provide an atmosphere of open-mindedness, support and non-judgment so that others will feel comfortable sharing. All of us have different experiences with people who suffer from BPD.\n• Refrain from any endorsement or promotion of individuals, groups, or businesses in which you have a personal or financial interest in as this is not allowed.\n\nBy checking this box, I certify I have read the above Family Connections™ Participant Code of Conduct and agree to abide by the rules as explained in this document when I enrol in a course.";
+	}
+
+	// ------------------------------------------------------------------
+	// [fc_expression_of_interest]
+	// ------------------------------------------------------------------
+
+	/**
+	 * Render the expression of interest form for the Family Connections course.
+	 *
+	 * @param array $atts Shortcode attributes (unused).
+	 * @return string HTML output.
+	 */
+	public function expression_of_interest( $atts ) {
+		$form_message = '';
+		$form_error   = '';
+
+		if ( isset( $_POST['fc_eoi_nonce'] ) ) {
+			$result       = $this->process_expression_of_interest();
+			$form_message = $result['message'] ?? '';
+			$form_error   = $result['error'] ?? '';
+		}
+
+		$ethnicity_options = self::get_ethnicity_options();
+		$code_of_conduct   = self::get_code_of_conduct();
+
+		$relationship_options = array(
+			'child'                => __( 'Child', 'fc-courses' ),
+			'romantic_partner'     => __( 'Romantic partner', 'fc-courses' ),
+			'ex_partner_co_parent' => __( 'Ex-partner / co-parent', 'fc-courses' ),
+			'sibling'              => __( 'Sibling', 'fc-courses' ),
+			'parent'               => __( 'Parent', 'fc-courses' ),
+			'friend'               => __( 'Friend', 'fc-courses' ),
+			'other'                => __( 'Other', 'fc-courses' ),
+		);
+
+		ob_start();
+		include FC_COURSES_PLUGIN_DIR . 'public/views/expression-of-interest.php';
+		return ob_get_clean();
+	}
+
+	/**
+	 * Process the submitted expression of interest form.
+	 *
+	 * @return array Keys: 'message' (success) or 'error'.
+	 */
+	private function process_expression_of_interest() {
+		if ( ! isset( $_POST['fc_eoi_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['fc_eoi_nonce'] ), 'fc_expression_of_interest' ) ) {
+			return array( 'error' => __( 'Security check failed. Please try again.', 'fc-courses' ) );
+		}
+
+		$full_name    = sanitize_text_field( wp_unslash( $_POST['full_name'] ?? '' ) );
+		$town_region  = sanitize_text_field( wp_unslash( $_POST['town_region'] ?? '' ) );
+		$phone        = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
+		$email        = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+		$relationship = sanitize_text_field( wp_unslash( $_POST['relationship'] ?? '' ) );
+		$ethnicity    = isset( $_POST['ethnicity'] ) && is_array( $_POST['ethnicity'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['ethnicity'] ) )
+			: array();
+		$coc_agreed   = ! empty( $_POST['coc_agreed'] );
+
+		// Validate required fields.
+		if ( ! $full_name || ! $town_region || ! $phone || ! is_email( $email ) ) {
+			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
+		}
+
+		// Validate relationship.
+		$allowed_relationships = array( 'child', 'romantic_partner', 'ex_partner_co_parent', 'sibling', 'parent', 'friend', 'other' );
+		if ( ! in_array( $relationship, $allowed_relationships, true ) ) {
+			return array( 'error' => __( 'Please select your relationship to the main person.', 'fc-courses' ) );
+		}
+
+		// Validate Code of Conduct.
+		if ( ! $coc_agreed ) {
+			return array( 'error' => __( 'Please agree to the Participant Code of Conduct to continue.', 'fc-courses' ) );
+		}
+
+		// Validate ethnicity selections against allowed list.
+		$allowed_ethnicities = self::get_ethnicity_options();
+		$ethnicity           = array_values( array_filter( $ethnicity, function ( $e ) use ( $allowed_ethnicities ) {
+			return in_array( $e, $allowed_ethnicities, true );
+		} ) );
+
+		global $wpdb;
+
+		$wpdb->insert(
+			$wpdb->prefix . 'fc_applicants',
+			array(
+				'full_name'   => $full_name,
+				'town_region' => $town_region,
+				'phone'       => $phone,
+				'email'       => $email,
+				'relationship' => $relationship,
+				'ethnicity'   => implode( ', ', $ethnicity ),
+				'status'      => 'pending',
+			),
+			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+		);
+
+		// Notify admin.
+		$from_name   = get_option( 'fc_from_name', get_bloginfo( 'name' ) );
+		$from_email  = get_option( 'fc_from_email', get_option( 'admin_email' ) );
+		$admin_email = get_option( 'fc_admin_email', get_option( 'admin_email' ) );
+		$headers     = array(
+			'Content-Type: text/html; charset=UTF-8',
+			"From: {$from_name} <{$from_email}>",
+		);
+
+		$admin_body  = '<p>' . esc_html__( 'A new expression of interest has been submitted for the Family Connections course.', 'fc-courses' ) . '</p>';
+		$admin_body .= '<ul>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Name:', 'fc-courses' ) . '</strong> ' . esc_html( $full_name ) . '</li>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Email:', 'fc-courses' ) . '</strong> ' . esc_html( $email ) . '</li>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Phone:', 'fc-courses' ) . '</strong> ' . esc_html( $phone ) . '</li>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Town/Region:', 'fc-courses' ) . '</strong> ' . esc_html( $town_region ) . '</li>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Relationship:', 'fc-courses' ) . '</strong> ' . esc_html( $relationship ) . '</li>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Ethnicity:', 'fc-courses' ) . '</strong> ' . esc_html( implode( ', ', $ethnicity ) ) . '</li>';
+		$admin_body .= '</ul>';
+		$admin_body .= '<p><a href="' . esc_url( admin_url( 'admin.php?page=fc-courses-applicants' ) ) . '">' . esc_html__( 'View Applicants', 'fc-courses' ) . '</a></p>';
+
+		wp_mail( $admin_email, __( 'New Expression of Interest: Family Connections', 'fc-courses' ), $admin_body, $headers );
+
+		return array( 'message' => __( 'Thank you for your expression of interest! We will review your application and be in touch soon.', 'fc-courses' ) );
 	}
 
 	/**

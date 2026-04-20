@@ -139,6 +139,82 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</tr>
 		</table>
 
+		<!-- Ethnicity Options -->
+		<h2><?php esc_html_e( 'Ethnicity Options', 'fc-courses' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'Enter one ethnicity option per line. These appear as checkboxes in the expression of interest form.', 'fc-courses' ); ?></p>
+		<table class="form-table">
+			<tr>
+				<th><label for="fc_ethnicity_options"><?php esc_html_e( 'Options', 'fc-courses' ); ?></label></th>
+				<td>
+					<?php
+					$saved_ethnicities   = get_option( 'fc_ethnicity_options', '' );
+					$display_ethnicities = '' !== trim( $saved_ethnicities )
+						? $saved_ethnicities
+						: implode( "\n", FC_Courses_Shortcodes::get_ethnicity_options() );
+					?>
+					<textarea name="fc_ethnicity_options" id="fc_ethnicity_options" rows="14" class="large-text"><?php echo esc_textarea( $display_ethnicities ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'One option per line. Participants can select multiple options.', 'fc-courses' ); ?></p>
+				</td>
+			</tr>
+		</table>
+
+		<!-- Code of Conduct -->
+		<h2><?php esc_html_e( 'Participant Code of Conduct', 'fc-courses' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'This text is shown in a modal popup when an applicant clicks the Code of Conduct link on the expression of interest form.', 'fc-courses' ); ?></p>
+		<table class="form-table">
+			<tr>
+				<th><label for="fc_code_of_conduct"><?php esc_html_e( 'Code of Conduct Text', 'fc-courses' ); ?></label></th>
+				<td>
+					<textarea name="fc_code_of_conduct" id="fc_code_of_conduct" rows="20" class="large-text"><?php echo esc_textarea( FC_Courses_Shortcodes::get_code_of_conduct() ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'Plain text. Line breaks are preserved.', 'fc-courses' ); ?></p>
+				</td>
+			</tr>
+		</table>
+
+		<!-- Applicant Decision Emails -->
+		<h2><?php esc_html_e( 'Applicant Decision Emails', 'fc-courses' ); ?></h2>
+		<p class="description">
+			<?php
+			printf(
+				/* translators: placeholder tags */
+				esc_html__( 'You can use the placeholder %1$s in the email body to insert the applicant\'s name.', 'fc-courses' ),
+				'<code>{name}</code>'
+			);
+			?>
+		</p>
+
+		<h3><?php esc_html_e( 'Approval Email', 'fc-courses' ); ?></h3>
+		<table class="form-table">
+			<tr>
+				<th><label for="fc_approval_email_subject"><?php esc_html_e( 'Subject', 'fc-courses' ); ?></label></th>
+				<td><input type="text" name="fc_approval_email_subject" id="fc_approval_email_subject" class="large-text"
+				           value="<?php echo esc_attr( get_option( 'fc_approval_email_subject', __( 'Your Family Connections application has been approved', 'fc-courses' ) ) ); ?>"></td>
+			</tr>
+			<tr>
+				<th><label for="fc_approval_email_body"><?php esc_html_e( 'Body', 'fc-courses' ); ?></label></th>
+				<td>
+					<textarea name="fc_approval_email_body" id="fc_approval_email_body" rows="10" class="large-text"><?php echo esc_textarea( get_option( 'fc_approval_email_body', '' ) ?: FC_Courses_Shortcodes::get_default_approval_email() ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'Plain text or HTML. Use {name} for the applicant\'s name.', 'fc-courses' ); ?></p>
+				</td>
+			</tr>
+		</table>
+
+		<h3><?php esc_html_e( 'Rejection Email', 'fc-courses' ); ?></h3>
+		<table class="form-table">
+			<tr>
+				<th><label for="fc_rejection_email_subject"><?php esc_html_e( 'Subject', 'fc-courses' ); ?></label></th>
+				<td><input type="text" name="fc_rejection_email_subject" id="fc_rejection_email_subject" class="large-text"
+				           value="<?php echo esc_attr( get_option( 'fc_rejection_email_subject', __( 'Your Family Connections application', 'fc-courses' ) ) ); ?>"></td>
+			</tr>
+			<tr>
+				<th><label for="fc_rejection_email_body"><?php esc_html_e( 'Body', 'fc-courses' ); ?></label></th>
+				<td>
+					<textarea name="fc_rejection_email_body" id="fc_rejection_email_body" rows="10" class="large-text"><?php echo esc_textarea( get_option( 'fc_rejection_email_body', '' ) ?: FC_Courses_Shortcodes::get_default_rejection_email() ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'Plain text or HTML. Use {name} for the applicant\'s name.', 'fc-courses' ); ?></p>
+				</td>
+			</tr>
+		</table>
+
 		<?php submit_button( __( 'Save Settings', 'fc-courses' ) ); ?>
 
 		<!-- Registration Form Fields -->

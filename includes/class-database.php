@@ -158,6 +158,27 @@ class FC_Courses_Database {
 		) $charset;";
 		dbDelta( $sql );
 
+		// ------------------------------------------------------------------
+		// Applicants (expression of interest)
+		// ------------------------------------------------------------------
+		$sql = "CREATE TABLE {$wpdb->prefix}fc_applicants (
+			id             BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			full_name      VARCHAR(255)        NOT NULL DEFAULT '',
+			town_region    VARCHAR(255)        NOT NULL DEFAULT '',
+			phone          VARCHAR(30)         NOT NULL DEFAULT '',
+			email          VARCHAR(255)        NOT NULL DEFAULT '',
+			relationship   VARCHAR(100)        NOT NULL DEFAULT '',
+			ethnicity      TEXT                NOT NULL DEFAULT '',
+			status         VARCHAR(20)         NOT NULL DEFAULT 'pending',
+			notes          TEXT                DEFAULT NULL,
+			applied_at     DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at     DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			KEY email (email),
+			KEY status (status)
+		) $charset;";
+		dbDelta( $sql );
+
 		update_option( self::OPTION_KEY, self::SCHEMA_VERSION );
 
 		// Seed default courses if the table was just created.

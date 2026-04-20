@@ -31,6 +31,8 @@ class FC_Courses_Admin {
 		add_action( 'admin_post_fc_save_settings', array( $this, 'handle_save_settings' ) );
 		add_action( 'admin_post_fc_update_enrollment', array( $this, 'handle_update_enrollment' ) );
 		add_action( 'admin_post_fc_delete_enrollment', array( $this, 'handle_delete_enrollment' ) );
+		add_action( 'admin_post_fc_update_applicant', array( $this, 'handle_update_applicant' ) );
+		add_action( 'admin_post_fc_delete_applicant', array( $this, 'handle_delete_applicant' ) );
 	}
 
 	// ------------------------------------------------------------------
@@ -62,6 +64,15 @@ class FC_Courses_Admin {
 			$capability,
 			'fc-courses',
 			array( $this, 'page_enrollments' )
+		);
+
+		add_submenu_page(
+			'fc-courses',
+			__( 'Applicants', 'fc-courses' ),
+			__( 'Applicants', 'fc-courses' ),
+			$capability,
+			'fc-courses-applicants',
+			array( $this, 'page_applicants' )
 		);
 
 		add_submenu_page(
@@ -122,6 +133,7 @@ class FC_Courses_Admin {
 	public function enqueue_assets( $hook ) {
 		$fc_pages = array(
 			'toplevel_page_fc-courses',
+			'fc-courses_page_fc-courses-applicants',
 			'fc-courses_page_fc-courses-courses',
 			'fc-courses_page_fc-courses-course-dates',
 			'fc-courses_page_fc-courses-discount-codes',
@@ -202,6 +214,13 @@ class FC_Courses_Admin {
 	 */
 	public function page_docs() {
 		$this->render_view( 'page-docs' );
+	}
+
+	/**
+	 * Render the Applicants page.
+	 */
+	public function page_applicants() {
+		$this->render_view( 'page-applicants' );
 	}
 
 	/**
@@ -464,6 +483,111 @@ class FC_Courses_Admin {
 	}
 
 	// ------------------------------------------------------------------
+	// Form handlers – Applicants
+	// ------------------------------------------------------------------
+
+	/**
+	 * Handle approve or reject an applicant.
+	 * Sends the configured email, then redirects back.
+	 */
+	public function handle_update_applicant() {
+		check_admin_referer( 'fc_update_applicant' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
+		}
+
+		global $wpdb;
+		$id     = absint( $_POST['applicant_id'] ?? 0 );
+		$status = in_array( $_POST['status'] ?? '', array( 'pending', 'approved', 'rejected' ), true )
+			? sanitize_text_field( wp_unslash( $_POST['status'] ) )
+			: 'pending';
+		$notes  = sanitize_textarea_field( wp_unslash( $_POST['notes'] ?? '' ) );
+
+		if ( $id > 0 ) {
+			$applicant = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}fc_applicants WHERE id = %d", $id ) );
+
+			$wpdb->update(
+				$wpdb->prefix . 'fc_applicants',
+				array(
+					'status' => $status,
+					'notes'  => $notes,
+				),
+				array( 'id' => $id ),
+				array( '%s', '%s' ),
+				array( '%d' )
+			);
+
+			if ( $applicant && in_array( $status, array( 'approved', 'rejected' ), true ) ) {
+				$this->send_applicant_decision_email( $applicant, $status );
+			}
+		}
+
+		wp_safe_redirect( admin_url( 'admin.php?page=fc-courses-applicants&updated=1' ) );
+		exit;
+	}
+
+	/**
+	 * Handle delete an applicant.
+	 */
+	public function handle_delete_applicant() {
+		check_admin_referer( 'fc_delete_applicant' );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
+		}
+
+		global $wpdb;
+		$id = absint( $_GET['applicant_id'] ?? 0 );
+		if ( $id > 0 ) {
+			$wpdb->delete( $wpdb->prefix . 'fc_applicants', array( 'id' => $id ), array( '%d' ) );
+		}
+
+		wp_safe_redirect( admin_url( 'admin.php?page=fc-courses-applicants&deleted=1' ) );
+		exit;
+	}
+
+	/**
+	 * Send the approval or rejection email to an applicant.
+	 *
+	 * @param object $applicant Applicant row from the database.
+	 * @param string $decision  'approved' or 'rejected'.
+	 */
+	private function send_applicant_decision_email( $applicant, $decision ) {
+		$from_name  = get_option( 'fc_from_name', get_bloginfo( 'name' ) );
+		$from_email = get_option( 'fc_from_email', get_option( 'admin_email' ) );
+		$headers    = array(
+			'Content-Type: text/html; charset=UTF-8',
+			"From: {$from_name} <{$from_email}>",
+		);
+
+		if ( 'approved' === $decision ) {
+			$subject  = get_option( 'fc_approval_email_subject', __( 'Your Family Connections application has been approved', 'fc-courses' ) );
+			$template = get_option( 'fc_approval_email_body', '' ) ?: FC_Courses_Shortcodes::get_default_approval_email();
+		} else {
+			$subject  = get_option( 'fc_rejection_email_subject', __( 'Your Family Connections application', 'fc-courses' ) );
+			$template = get_option( 'fc_rejection_email_body', '' ) ?: FC_Courses_Shortcodes::get_default_rejection_email();
+		}
+
+		// Replace placeholders.
+		$body = str_replace(
+			array( '{name}', '{full_name}', '{email}', '{site_name}' ),
+			array(
+				esc_html( $applicant->full_name ),
+				esc_html( $applicant->full_name ),
+				esc_html( $applicant->email ),
+				esc_html( get_bloginfo( 'name' ) ),
+			),
+			$template
+		);
+
+		// Convert newlines to <br> if the body doesn't already contain HTML tags.
+		if ( ! preg_match( '/<[a-z][\s\S]*>/i', $body ) ) {
+			$body = nl2br( $body );
+		}
+
+		wp_mail( $applicant->email, $subject, $body, $headers );
+	}
+
+	// ------------------------------------------------------------------
 	// Form handlers – Settings
 	// ------------------------------------------------------------------
 
@@ -489,11 +613,21 @@ class FC_Courses_Admin {
 			'fc_from_email',
 			'fc_from_name',
 			'fc_success_page_id',
+			'fc_approval_email_subject',
+			'fc_rejection_email_subject',
 		);
 
 		foreach ( $fields as $field ) {
 			if ( isset( $_POST[ $field ] ) ) {
 				update_option( $field, sanitize_text_field( wp_unslash( $_POST[ $field ] ) ) );
+			}
+		}
+
+		// Textarea fields.
+		$textarea_fields = array( 'fc_approval_email_body', 'fc_rejection_email_body', 'fc_code_of_conduct' );
+		foreach ( $textarea_fields as $field ) {
+			if ( isset( $_POST[ $field ] ) ) {
+				update_option( $field, sanitize_textarea_field( wp_unslash( $_POST[ $field ] ) ) );
 			}
 		}
 
@@ -504,6 +638,11 @@ class FC_Courses_Admin {
 		// Participant types – stored as newline-separated text.
 		if ( isset( $_POST['fc_participant_types'] ) ) {
 			update_option( 'fc_participant_types', sanitize_textarea_field( wp_unslash( $_POST['fc_participant_types'] ) ) );
+		}
+
+		// Ethnicity options – stored as newline-separated text.
+		if ( isset( $_POST['fc_ethnicity_options'] ) ) {
+			update_option( 'fc_ethnicity_options', sanitize_textarea_field( wp_unslash( $_POST['fc_ethnicity_options'] ) ) );
 		}
 
 		// Registration form field configuration.
