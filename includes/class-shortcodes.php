@@ -149,7 +149,7 @@ class FC_Courses_Shortcodes {
 	 * @return string
 	 */
 	public static function get_default_approval_email() {
-		return __( "Dear {name},\n\nWe are delighted to let you know that your expression of interest in the Family Connections course has been approved.\n\nYour unique enrolment code is: {code}\n\nPlease visit the enrolment form on our website and enter this code to complete your enrolment.\n\nWe look forward to welcoming you to the programme.\n\nWarm regards,\nThe Family Connections Team", 'fc-courses' );
+		return __( "Dear {name},\n\nWe are delighted to let you know that your expression of interest in the Family Connections course has been approved.\n\nYour unique enrolment code is: {code}\n\nPlease visit the enrolment form to complete your enrolment: {full_form_url}\n\nWe look forward to welcoming you to the programme.\n\nWarm regards,\nThe Family Connections Team", 'fc-courses' );
 	}
 
 	/**
@@ -167,7 +167,7 @@ class FC_Courses_Shortcodes {
 	 * @return string
 	 */
 	public static function get_default_leader_approval_email() {
-		return __( "Dear {name},\n\nWe are delighted to let you know that your Leaders Training expression of interest has been approved.\n\nYour unique enrolment code is: {code}\n\nPlease visit the Leaders Training enrolment form on our website and enter this code to complete your enrolment.\n\nWe look forward to welcoming you to the programme.\n\nWarm regards,\nThe Family Connections Team", 'fc-courses' );
+		return __( "Dear {name},\n\nWe are delighted to let you know that your Leaders Training expression of interest has been approved.\n\nYour unique enrolment code is: {code}\n\nPlease visit the Leaders Training enrolment form to complete your enrolment: {full_form_url}\n\nWe look forward to welcoming you to the programme.\n\nWarm regards,\nThe Family Connections Team", 'fc-courses' );
 	}
 
 	/**

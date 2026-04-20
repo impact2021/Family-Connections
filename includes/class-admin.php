@@ -604,8 +604,14 @@ class FC_Courses_Admin {
 		}
 
 		// Replace placeholders.
+		$full_form_url = '';
+		$full_form_page_id = (int) get_option( 'fc_full_form_page_id', 0 );
+		if ( $full_form_page_id ) {
+			$full_form_url = get_permalink( $full_form_page_id ) ?: '';
+		}
+
 		$body = str_replace(
-			array( '{name}', '{full_name}', '{email}', '{site_name}', '{code}', '{approval_code}' ),
+			array( '{name}', '{full_name}', '{email}', '{site_name}', '{code}', '{approval_code}', '{full_form_url}' ),
 			array(
 				esc_html( $applicant->full_name ),
 				esc_html( $applicant->full_name ),
@@ -613,6 +619,7 @@ class FC_Courses_Admin {
 				esc_html( get_bloginfo( 'name' ) ),
 				esc_html( $applicant->approval_code ?? '' ),
 				esc_html( $applicant->approval_code ?? '' ),
+				esc_url( $full_form_url ),
 			),
 			$template
 		);
@@ -726,8 +733,14 @@ class FC_Courses_Admin {
 			$template = get_option( 'fc_leader_rejection_email_body', '' ) ?: FC_Courses_Shortcodes::get_default_leader_rejection_email();
 		}
 
+		$leader_full_form_url = '';
+		$leader_full_form_page_id = (int) get_option( 'fc_leader_full_form_page_id', 0 );
+		if ( $leader_full_form_page_id ) {
+			$leader_full_form_url = get_permalink( $leader_full_form_page_id ) ?: '';
+		}
+
 		$body = str_replace(
-			array( '{name}', '{full_name}', '{email}', '{site_name}', '{code}', '{approval_code}' ),
+			array( '{name}', '{full_name}', '{email}', '{site_name}', '{code}', '{approval_code}', '{full_form_url}' ),
 			array(
 				esc_html( $applicant->full_name ),
 				esc_html( $applicant->full_name ),
@@ -735,6 +748,7 @@ class FC_Courses_Admin {
 				esc_html( get_bloginfo( 'name' ) ),
 				esc_html( $applicant->approval_code ?? '' ),
 				esc_html( $applicant->approval_code ?? '' ),
+				esc_url( $leader_full_form_url ),
 			),
 			$template
 		);
@@ -772,6 +786,8 @@ class FC_Courses_Admin {
 			'fc_from_email',
 			'fc_from_name',
 			'fc_success_page_id',
+			'fc_full_form_page_id',
+			'fc_leader_full_form_page_id',
 			'fc_approval_email_subject',
 			'fc_rejection_email_subject',
 			'fc_leader_approval_email_subject',
