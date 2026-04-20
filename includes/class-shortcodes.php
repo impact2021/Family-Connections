@@ -635,11 +635,11 @@ class FC_Courses_Shortcodes {
 		$coc_agreed   = ! empty( $_POST['coc_agreed'] );
 
 		// Validate required fields.
-		if ( ! $full_name || ! $town_region || ! $phone || ! is_email( $email ) ) {
+		if ( ! $full_name || ! $town_region || ! $phone || ! is_email( $email ) || ! $relationship ) {
 			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
 		}
 
-		// Validate relationship.
+		// Validate relationship is one of the allowed values.
 		$allowed_relationships = array( 'child', 'romantic_partner', 'ex_partner_co_parent', 'sibling', 'parent', 'friend', 'other' );
 		if ( ! in_array( $relationship, $allowed_relationships, true ) ) {
 			return array( 'error' => __( 'Please select your relationship to the main person.', 'fc-courses' ) );
