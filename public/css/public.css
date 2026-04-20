@@ -290,6 +290,47 @@ width: 180px;
 	flex-shrink: 0;
 }
 
+/* Radio group (mental health, DBT, management approval) */
+.fc-radio-group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 24px;
+	margin-top: 4px;
+}
+
+.fc-radio-option {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	font-size: 0.95em;
+}
+
+.fc-radio-option input[type="radio"] {
+	flex-shrink: 0;
+}
+
+/* Textarea fields */
+.fc-textarea {
+	width: 100%;
+	padding: 7px 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 1em;
+	resize: vertical;
+}
+
+/* Read-only value display (e.g. participant type on full form) */
+.fc-readonly-value {
+	margin: 0;
+	padding: 7px 10px;
+	background: #f6f6f6;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 1em;
+	color: #555;
+}
+
 .fc-coc-wrap {
 	display: flex;
 	align-items: flex-start;

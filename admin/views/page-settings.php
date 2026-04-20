@@ -141,7 +141,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<!-- Ethnicity Options -->
 		<h2><?php esc_html_e( 'Ethnicity Options', 'fc-courses' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'Enter one ethnicity option per line. These appear as checkboxes in the expression of interest form.', 'fc-courses' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Enter one ethnicity option per line. These appear as checkboxes in the FC Full Enrolment and Leaders Training enrolment forms.', 'fc-courses' ); ?></p>
 		<table class="form-table">
 			<tr>
 				<th><label for="fc_ethnicity_options"><?php esc_html_e( 'Options', 'fc-courses' ); ?></label></th>
@@ -158,9 +158,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</tr>
 		</table>
 
-		<!-- Code of Conduct -->
+		<!-- Participant Code of Conduct -->
 		<h2><?php esc_html_e( 'Participant Code of Conduct', 'fc-courses' ); ?></h2>
-		<p class="description"><?php esc_html_e( 'This text is shown in a modal popup when an applicant clicks the Code of Conduct link on the expression of interest form.', 'fc-courses' ); ?></p>
+		<p class="description"><?php esc_html_e( 'This text is shown in a modal popup when an applicant clicks the Code of Conduct link on the Family Connections full enrolment form.', 'fc-courses' ); ?></p>
 		<table class="form-table">
 			<tr>
 				<th><label for="fc_code_of_conduct"><?php esc_html_e( 'Code of Conduct Text', 'fc-courses' ); ?></label></th>
@@ -171,19 +171,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</tr>
 		</table>
 
-		<!-- Applicant Decision Emails -->
-		<h2><?php esc_html_e( 'Applicant Decision Emails', 'fc-courses' ); ?></h2>
+		<!-- Leader Code of Conduct -->
+		<h2><?php esc_html_e( 'Leader Code of Conduct', 'fc-courses' ); ?></h2>
+		<p class="description"><?php esc_html_e( 'This text is shown in a modal popup when a leader applicant clicks the Leader Code of Conduct link on the Leaders Training full enrolment form.', 'fc-courses' ); ?></p>
+		<table class="form-table">
+			<tr>
+				<th><label for="fc_leader_coc"><?php esc_html_e( 'Leader Code of Conduct Text', 'fc-courses' ); ?></label></th>
+				<td>
+					<textarea name="fc_leader_coc" id="fc_leader_coc" rows="20" class="large-text"><?php echo esc_textarea( FC_Courses_Shortcodes::get_leader_coc() ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'Plain text. Line breaks are preserved.', 'fc-courses' ); ?></p>
+				</td>
+			</tr>
+		</table>
+
+		<!-- FC Applicant Decision Emails -->
+		<h2><?php esc_html_e( 'FC Applicant Decision Emails', 'fc-courses' ); ?></h2>
 		<p class="description">
 			<?php
-			printf(
-				/* translators: placeholder tags */
-				esc_html__( 'You can use the placeholder %1$s in the email body to insert the applicant\'s name.', 'fc-courses' ),
-				'<code>{name}</code>'
+			echo wp_kses(
+				sprintf(
+					/* translators: placeholder tags */
+					__( 'Available placeholders: %1$s (applicant\'s name), %2$s (applicant\'s email), %3$s (unique approval code — included automatically in approval emails), %4$s (site name).', 'fc-courses' ),
+					'<code>{name}</code>',
+					'<code>{email}</code>',
+					'<code>{code}</code>',
+					'<code>{site_name}</code>'
+				),
+				array( 'code' => array() )
 			);
 			?>
 		</p>
 
-		<h3><?php esc_html_e( 'Approval Email', 'fc-courses' ); ?></h3>
+		<h3><?php esc_html_e( 'FC Approval Email', 'fc-courses' ); ?></h3>
 		<table class="form-table">
 			<tr>
 				<th><label for="fc_approval_email_subject"><?php esc_html_e( 'Subject', 'fc-courses' ); ?></label></th>
@@ -194,12 +213,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<th><label for="fc_approval_email_body"><?php esc_html_e( 'Body', 'fc-courses' ); ?></label></th>
 				<td>
 					<textarea name="fc_approval_email_body" id="fc_approval_email_body" rows="10" class="large-text"><?php echo esc_textarea( get_option( 'fc_approval_email_body', '' ) ?: FC_Courses_Shortcodes::get_default_approval_email() ); ?></textarea>
-					<p class="description"><?php esc_html_e( 'Plain text or HTML. Use {name} for the applicant\'s name.', 'fc-courses' ); ?></p>
+					<p class="description"><?php esc_html_e( 'Include {code} where you want the unique enrolment code to appear.', 'fc-courses' ); ?></p>
 				</td>
 			</tr>
 		</table>
 
-		<h3><?php esc_html_e( 'Rejection Email', 'fc-courses' ); ?></h3>
+		<h3><?php esc_html_e( 'FC Rejection Email', 'fc-courses' ); ?></h3>
 		<table class="form-table">
 			<tr>
 				<th><label for="fc_rejection_email_subject"><?php esc_html_e( 'Subject', 'fc-courses' ); ?></label></th>
@@ -210,7 +229,55 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<th><label for="fc_rejection_email_body"><?php esc_html_e( 'Body', 'fc-courses' ); ?></label></th>
 				<td>
 					<textarea name="fc_rejection_email_body" id="fc_rejection_email_body" rows="10" class="large-text"><?php echo esc_textarea( get_option( 'fc_rejection_email_body', '' ) ?: FC_Courses_Shortcodes::get_default_rejection_email() ); ?></textarea>
-					<p class="description"><?php esc_html_e( 'Plain text or HTML. Use {name} for the applicant\'s name.', 'fc-courses' ); ?></p>
+				</td>
+			</tr>
+		</table>
+
+		<!-- Leaders Training Applicant Decision Emails -->
+		<h2><?php esc_html_e( 'Leaders Training Applicant Decision Emails', 'fc-courses' ); ?></h2>
+		<p class="description">
+			<?php
+			echo wp_kses(
+				sprintf(
+					/* translators: placeholder tags */
+					__( 'Same placeholders as FC emails: %1$s, %2$s, %3$s (unique approval code), %4$s.', 'fc-courses' ),
+					'<code>{name}</code>',
+					'<code>{email}</code>',
+					'<code>{code}</code>',
+					'<code>{site_name}</code>'
+				),
+				array( 'code' => array() )
+			);
+			?>
+		</p>
+
+		<h3><?php esc_html_e( 'Leader Approval Email', 'fc-courses' ); ?></h3>
+		<table class="form-table">
+			<tr>
+				<th><label for="fc_leader_approval_email_subject"><?php esc_html_e( 'Subject', 'fc-courses' ); ?></label></th>
+				<td><input type="text" name="fc_leader_approval_email_subject" id="fc_leader_approval_email_subject" class="large-text"
+				           value="<?php echo esc_attr( get_option( 'fc_leader_approval_email_subject', __( 'Your Leaders Training application has been approved', 'fc-courses' ) ) ); ?>"></td>
+			</tr>
+			<tr>
+				<th><label for="fc_leader_approval_email_body"><?php esc_html_e( 'Body', 'fc-courses' ); ?></label></th>
+				<td>
+					<textarea name="fc_leader_approval_email_body" id="fc_leader_approval_email_body" rows="10" class="large-text"><?php echo esc_textarea( get_option( 'fc_leader_approval_email_body', '' ) ?: FC_Courses_Shortcodes::get_default_leader_approval_email() ); ?></textarea>
+					<p class="description"><?php esc_html_e( 'Include {code} where you want the unique enrolment code to appear.', 'fc-courses' ); ?></p>
+				</td>
+			</tr>
+		</table>
+
+		<h3><?php esc_html_e( 'Leader Rejection Email', 'fc-courses' ); ?></h3>
+		<table class="form-table">
+			<tr>
+				<th><label for="fc_leader_rejection_email_subject"><?php esc_html_e( 'Subject', 'fc-courses' ); ?></label></th>
+				<td><input type="text" name="fc_leader_rejection_email_subject" id="fc_leader_rejection_email_subject" class="large-text"
+				           value="<?php echo esc_attr( get_option( 'fc_leader_rejection_email_subject', __( 'Your Leaders Training application', 'fc-courses' ) ) ); ?>"></td>
+			</tr>
+			<tr>
+				<th><label for="fc_leader_rejection_email_body"><?php esc_html_e( 'Body', 'fc-courses' ); ?></label></th>
+				<td>
+					<textarea name="fc_leader_rejection_email_body" id="fc_leader_rejection_email_body" rows="10" class="large-text"><?php echo esc_textarea( get_option( 'fc_leader_rejection_email_body', '' ) ?: FC_Courses_Shortcodes::get_default_leader_rejection_email() ); ?></textarea>
 				</td>
 			</tr>
 		</table>

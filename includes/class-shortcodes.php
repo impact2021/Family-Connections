@@ -11,6 +11,10 @@
  * [fc_course_calendar limit="N"]         – limit the number of rows shown
  * [fc_course_registration]               – sign-up form (course selector included)
  * [fc_course_registration course_id="N"] – sign-up form locked to a specific course
+ * [fc_expression_of_interest]            – FC participant expression of interest (simplified)
+ * [fc_full_enrolment]                    – FC participant full enrolment form (code-gated)
+ * [fc_leader_eoi]                        – Leaders Training expression of interest
+ * [fc_leader_enrolment]                  – Leaders Training full enrolment form (code-gated)
  *
  * @package FC_Courses
  */
@@ -145,7 +149,7 @@ class FC_Courses_Shortcodes {
 	 * @return string
 	 */
 	public static function get_default_approval_email() {
-		return __( "Dear {name},\n\nWe are delighted to let you know that your expression of interest in the Family Connections course has been approved.\n\nWe will be in touch shortly with details about upcoming course dates and next steps for enrolment.\n\nThank you for reaching out, and we look forward to welcoming you to the programme.\n\nWarm regards,\nThe Family Connections Team", 'fc-courses' );
+		return __( "Dear {name},\n\nWe are delighted to let you know that your expression of interest in the Family Connections course has been approved.\n\nYour unique enrolment code is: {code}\n\nPlease visit the enrolment form on our website and enter this code to complete your enrolment.\n\nWe look forward to welcoming you to the programme.\n\nWarm regards,\nThe Family Connections Team", 'fc-courses' );
 	}
 
 	/**
@@ -158,6 +162,43 @@ class FC_Courses_Shortcodes {
 	}
 
 	/**
+	 * Return the default leader approval email body (used as fallback in settings).
+	 *
+	 * @return string
+	 */
+	public static function get_default_leader_approval_email() {
+		return __( "Dear {name},\n\nWe are delighted to let you know that your Leaders Training expression of interest has been approved.\n\nYour unique enrolment code is: {code}\n\nPlease visit the Leaders Training enrolment form on our website and enter this code to complete your enrolment.\n\nWe look forward to welcoming you to the programme.\n\nWarm regards,\nThe Family Connections Team", 'fc-courses' );
+	}
+
+	/**
+	 * Return the default leader rejection email body (used as fallback in settings).
+	 *
+	 * @return string
+	 */
+	public static function get_default_leader_rejection_email() {
+		return __( "Dear {name},\n\nThank you for your interest in the Family Connections Leaders Training.\n\nUnfortunately, we are unable to approve your application at this time.\n\nWe encourage you to contact us if you would like to discuss your options further.\n\nWarm regards,\nThe Family Connections Team", 'fc-courses' );
+	}
+
+	/**
+	 * Return the default Family Connections™ Leader Code of Conduct text.
+	 *
+	 * @return string
+	 */
+	public static function get_default_leader_coc() {
+		return "Family Connections™ Leader Code of Conduct\n\nFamily Connections™ is offered by the BPD Alliance (previously National Education Alliance for Borderline Personality Disorder (NEA BPD)) and is built around principles of mutual trust and respect among participants and leaders. As representatives of Family Connections™ (NEA BPD) NZ Inc, Leaders are held to standards of conduct during the provision of its Family Connections™ course.\n\nWhat we ask of you as a Family Connections™ Leader:\n\n• Provide a safe and respectful environment. Respect participant's cultural, political and religious differences. Please refrain from promoting your own personal, political or spiritual beliefs.\n• If you have someone in your course with whom you have a personal relationship, please work with your leader liaison to make sure that the relationship does not cause discomfort or conflict in class.\n• Respect participant privacy by creating an environment of confidentiality and hold sensitive, private and personal information in confidence.\n• If your personal situation changes such that your ability to lead Family Connections™ course is compromised, please reach out to your leader liaison to discuss a substitute or replacement as necessary.\n• Be prepared to encourage participants to get immediate help when there is a danger of harm to a participant or others.\n• Recognize that your actions and behaviours reflect on the Family Connections™ programme and impact the public perception of Family Connections™ (NEA BPD) NZ Inc as an organisation.\n• Lead with a co-leader. Each course has a minimum of two (2) leaders who have been trained by NEA BPD sanctioned Leader Trainers.\n• It is important that the co-leader relationship be an equal partnership. Although clinicians typically have significant subject matter expertise, peer validation of the family member is the foundation of the Family Connections™ model.\n• Present the Family Connections™ curriculum in its entirety, with no additions or deletions unless approved by Family Connections™ (NEA BPD) NZ Inc.\n• Leaders are not expected to and are discouraged from providing one to one support or guidance to participants except during scheduled class times when co-leader is present.\n• Leaders are asked not to endorse/promote individuals, groups or businesses in which they have a personal or financial interest or promote any non-Family Connections™ (NEA BPD) NZ Inc fundraising activity to Family Connections™ participants.\n\nI have read the above information and I agree to abide by the rules as explained in this document.";
+	}
+
+	/**
+	 * Return the Leader Code of Conduct text (admin-configured or default).
+	 *
+	 * @return string
+	 */
+	public static function get_leader_coc() {
+		$saved = get_option( 'fc_leader_coc', '' );
+		return '' !== trim( $saved ) ? $saved : self::get_default_leader_coc();
+	}
+
+	/**
 	 * Register hooks.
 	 */
 	public function init() {
@@ -165,6 +206,9 @@ class FC_Courses_Shortcodes {
 		add_shortcode( 'fc_course_list', array( $this, 'course_list' ) );
 		add_shortcode( 'fc_course_calendar', array( $this, 'course_calendar' ) );
 		add_shortcode( 'fc_expression_of_interest', array( $this, 'expression_of_interest' ) );
+		add_shortcode( 'fc_full_enrolment', array( $this, 'full_enrolment' ) );
+		add_shortcode( 'fc_leader_eoi', array( $this, 'leader_eoi' ) );
+		add_shortcode( 'fc_leader_enrolment', array( $this, 'leader_enrolment' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
 	}
 
@@ -596,19 +640,6 @@ class FC_Courses_Shortcodes {
 			$form_error   = $result['error'] ?? '';
 		}
 
-		$ethnicity_options = self::get_ethnicity_options();
-		$code_of_conduct   = self::get_code_of_conduct();
-
-		$relationship_options = array(
-			'child'                => __( 'Child', 'fc-courses' ),
-			'romantic_partner'     => __( 'Romantic partner', 'fc-courses' ),
-			'ex_partner_co_parent' => __( 'Ex-partner / co-parent', 'fc-courses' ),
-			'sibling'              => __( 'Sibling', 'fc-courses' ),
-			'parent'               => __( 'Parent', 'fc-courses' ),
-			'friend'               => __( 'Friend', 'fc-courses' ),
-			'other'                => __( 'Other', 'fc-courses' ),
-		);
-
 		ob_start();
 		include FC_COURSES_PLUGIN_DIR . 'public/views/expression-of-interest.php';
 		return ob_get_clean();
@@ -624,52 +655,49 @@ class FC_Courses_Shortcodes {
 			return array( 'error' => __( 'Security check failed. Please try again.', 'fc-courses' ) );
 		}
 
-		$full_name    = sanitize_text_field( wp_unslash( $_POST['full_name'] ?? '' ) );
-		$town_region  = sanitize_text_field( wp_unslash( $_POST['town_region'] ?? '' ) );
-		$phone        = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
-		$email        = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
-		$relationship = sanitize_text_field( wp_unslash( $_POST['relationship'] ?? '' ) );
-		$ethnicity    = isset( $_POST['ethnicity'] ) && is_array( $_POST['ethnicity'] )
-			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['ethnicity'] ) )
-			: array();
-		$coc_agreed   = ! empty( $_POST['coc_agreed'] );
+		$full_name             = sanitize_text_field( wp_unslash( $_POST['full_name'] ?? '' ) );
+		$town_region           = sanitize_text_field( wp_unslash( $_POST['town_region'] ?? '' ) );
+		$phone                 = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
+		$email                 = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+		$mental_health_current = sanitize_text_field( wp_unslash( $_POST['mental_health_current'] ?? '' ) );
+		$mental_health_past    = sanitize_text_field( wp_unslash( $_POST['mental_health_past'] ?? '' ) );
+		$loved_one_age         = sanitize_text_field( wp_unslash( $_POST['loved_one_age'] ?? '' ) );
 
 		// Validate required fields.
-		if ( ! $full_name || ! $town_region || ! $phone || ! is_email( $email ) || ! $relationship ) {
+		if ( ! $full_name || ! $town_region || ! $phone || ! is_email( $email ) || ! $loved_one_age ) {
 			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
 		}
 
-		// Validate relationship is one of the allowed values.
-		$allowed_relationships = array( 'child', 'romantic_partner', 'ex_partner_co_parent', 'sibling', 'parent', 'friend', 'other' );
-		if ( ! in_array( $relationship, $allowed_relationships, true ) ) {
-			return array( 'error' => __( 'Please select your relationship to the main person.', 'fc-courses' ) );
+		$allowed_answers = array( 'yes', 'no', 'unsure' );
+		if ( ! in_array( $mental_health_current, $allowed_answers, true ) ) {
+			return array( 'error' => __( 'Please answer all required questions.', 'fc-courses' ) );
 		}
 
-		// Validate Code of Conduct.
-		if ( ! $coc_agreed ) {
-			return array( 'error' => __( 'Please agree to the Participant Code of Conduct to continue.', 'fc-courses' ) );
+		// "Have they ever been?" is only required when not currently under a service.
+		if ( 'yes' !== $mental_health_current && ! in_array( $mental_health_past, $allowed_answers, true ) ) {
+			return array( 'error' => __( 'Please answer all required questions.', 'fc-courses' ) );
 		}
 
-		// Validate ethnicity selections against allowed list.
-		$allowed_ethnicities = self::get_ethnicity_options();
-		$ethnicity           = array_values( array_filter( $ethnicity, function ( $e ) use ( $allowed_ethnicities ) {
-			return in_array( $e, $allowed_ethnicities, true );
-		} ) );
+		// If currently under a service, past is not applicable.
+		if ( 'yes' === $mental_health_current ) {
+			$mental_health_past = '';
+		}
 
 		global $wpdb;
 
 		$wpdb->insert(
 			$wpdb->prefix . 'fc_applicants',
 			array(
-				'full_name'   => $full_name,
-				'town_region' => $town_region,
-				'phone'       => $phone,
-				'email'       => $email,
-				'relationship' => $relationship,
-				'ethnicity'   => implode( ', ', $ethnicity ),
-				'status'      => 'pending',
+				'full_name'             => $full_name,
+				'town_region'           => $town_region,
+				'phone'                 => $phone,
+				'email'                 => $email,
+				'mental_health_current' => $mental_health_current,
+				'mental_health_past'    => $mental_health_past,
+				'loved_one_age'         => $loved_one_age,
+				'status'                => 'pending',
 			),
-			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
 		);
 
 		// Notify admin.
@@ -681,14 +709,19 @@ class FC_Courses_Shortcodes {
 			"From: {$from_name} <{$from_email}>",
 		);
 
+		$mh_labels = array( 'yes' => 'Yes', 'no' => 'No', 'unsure' => 'Unsure', '' => '—' );
+
 		$admin_body  = '<p>' . esc_html__( 'A new expression of interest has been submitted for the Family Connections course.', 'fc-courses' ) . '</p>';
 		$admin_body .= '<ul>';
 		$admin_body .= '<li><strong>' . esc_html__( 'Name:', 'fc-courses' ) . '</strong> ' . esc_html( $full_name ) . '</li>';
 		$admin_body .= '<li><strong>' . esc_html__( 'Email:', 'fc-courses' ) . '</strong> ' . esc_html( $email ) . '</li>';
 		$admin_body .= '<li><strong>' . esc_html__( 'Phone:', 'fc-courses' ) . '</strong> ' . esc_html( $phone ) . '</li>';
 		$admin_body .= '<li><strong>' . esc_html__( 'Town/Region:', 'fc-courses' ) . '</strong> ' . esc_html( $town_region ) . '</li>';
-		$admin_body .= '<li><strong>' . esc_html__( 'Relationship:', 'fc-courses' ) . '</strong> ' . esc_html( $relationship ) . '</li>';
-		$admin_body .= '<li><strong>' . esc_html__( 'Ethnicity:', 'fc-courses' ) . '</strong> ' . esc_html( implode( ', ', $ethnicity ) ) . '</li>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Age of loved one:', 'fc-courses' ) . '</strong> ' . esc_html( $loved_one_age ) . '</li>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Currently under public mental health service:', 'fc-courses' ) . '</strong> ' . esc_html( $mh_labels[ $mental_health_current ] ?? $mental_health_current ) . '</li>';
+		if ( '' !== $mental_health_past ) {
+			$admin_body .= '<li><strong>' . esc_html__( 'Ever been under public mental health service:', 'fc-courses' ) . '</strong> ' . esc_html( $mh_labels[ $mental_health_past ] ?? $mental_health_past ) . '</li>';
+		}
 		$admin_body .= '</ul>';
 		$admin_body .= '<p><a href="' . esc_url( admin_url( 'admin.php?page=fc-courses-applicants' ) ) . '">' . esc_html__( 'View Applicants', 'fc-courses' ) . '</a></p>';
 
@@ -696,6 +729,464 @@ class FC_Courses_Shortcodes {
 
 		return array( 'message' => __( 'Thank you for your expression of interest! We will review your application and be in touch soon.', 'fc-courses' ) );
 	}
+
+	// ------------------------------------------------------------------
+	// [fc_full_enrolment]
+	// ------------------------------------------------------------------
+
+	/**
+	 * Render the code-gated full enrolment form for the Family Connections course.
+	 *
+	 * Step 1 – visitor enters their approval code.
+	 * Step 2 – form pre-filled from EOI data; collects relationship, ethnicity, CoC.
+	 *
+	 * @param array $atts Shortcode attributes (unused).
+	 * @return string HTML output.
+	 */
+	public function full_enrolment( $atts ) {
+		$form_message      = '';
+		$form_error        = '';
+		$applicant         = null;
+		$step              = 'code';
+		$code              = '';
+		$ethnicity_options = self::get_ethnicity_options();
+		$relationship_options = array(
+			'child'                => __( 'Child', 'fc-courses' ),
+			'romantic_partner'     => __( 'Romantic partner', 'fc-courses' ),
+			'ex_partner_co_parent' => __( 'Ex-partner / co-parent', 'fc-courses' ),
+			'sibling'              => __( 'Sibling', 'fc-courses' ),
+			'parent'               => __( 'Parent', 'fc-courses' ),
+			'friend'               => __( 'Friend', 'fc-courses' ),
+			'other'                => __( 'Other', 'fc-courses' ),
+		);
+		$code_of_conduct = self::get_code_of_conduct();
+
+		if ( isset( $_POST['fc_full_code_nonce'] ) ) {
+			if ( ! wp_verify_nonce( sanitize_key( $_POST['fc_full_code_nonce'] ), 'fc_full_enrolment_code' ) ) {
+				$form_error = __( 'Security check failed. Please try again.', 'fc-courses' );
+			} else {
+				$code      = strtoupper( sanitize_text_field( wp_unslash( $_POST['fc_approval_code'] ?? '' ) ) );
+				$applicant = $this->get_fc_applicant_by_code( $code );
+				if ( ! $applicant ) {
+					$form_error = __( 'Invalid code. Please check your email and try again.', 'fc-courses' );
+				} elseif ( 'approved' !== $applicant->status ) {
+					$form_error = __( 'This code has already been used or is no longer valid.', 'fc-courses' );
+				} else {
+					$step = 'form';
+				}
+			}
+		} elseif ( isset( $_POST['fc_full_nonce'] ) ) {
+			$result       = $this->process_full_enrolment();
+			$form_message = $result['message'] ?? '';
+			$form_error   = $result['error'] ?? '';
+			if ( $form_error ) {
+				$code      = strtoupper( sanitize_text_field( wp_unslash( $_POST['fc_approval_code'] ?? '' ) ) );
+				$applicant = $this->get_fc_applicant_by_code( $code );
+				if ( $applicant && 'approved' === $applicant->status ) {
+					$step = 'form';
+				}
+			}
+		}
+
+		ob_start();
+		include FC_COURSES_PLUGIN_DIR . 'public/views/full-enrolment.php';
+		return ob_get_clean();
+	}
+
+	/**
+	 * Process the full enrolment form submission.
+	 *
+	 * @return array Keys: 'message' (success) or 'error'.
+	 */
+	private function process_full_enrolment() {
+		if ( ! isset( $_POST['fc_full_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['fc_full_nonce'] ), 'fc_full_enrolment' ) ) {
+			return array( 'error' => __( 'Security check failed. Please try again.', 'fc-courses' ) );
+		}
+
+		$code      = strtoupper( sanitize_text_field( wp_unslash( $_POST['fc_approval_code'] ?? '' ) ) );
+		$applicant = $this->get_fc_applicant_by_code( $code );
+
+		if ( ! $applicant ) {
+			return array( 'error' => __( 'Invalid code. Please contact us for assistance.', 'fc-courses' ) );
+		}
+		if ( 'approved' !== $applicant->status ) {
+			return array( 'error' => __( 'This code has already been used or is no longer valid.', 'fc-courses' ) );
+		}
+
+		$full_name    = sanitize_text_field( wp_unslash( $_POST['full_name'] ?? '' ) );
+		$town_region  = sanitize_text_field( wp_unslash( $_POST['town_region'] ?? '' ) );
+		$phone        = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
+		$email        = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+		$relationship = sanitize_text_field( wp_unslash( $_POST['relationship'] ?? '' ) );
+		$ethnicity    = isset( $_POST['ethnicity'] ) && is_array( $_POST['ethnicity'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['ethnicity'] ) )
+			: array();
+		$coc_agreed   = ! empty( $_POST['coc_agreed'] );
+
+		if ( ! $full_name || ! $town_region || ! $phone || ! is_email( $email ) || ! $relationship ) {
+			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
+		}
+
+		$allowed_relationships = array( 'child', 'romantic_partner', 'ex_partner_co_parent', 'sibling', 'parent', 'friend', 'other' );
+		if ( ! in_array( $relationship, $allowed_relationships, true ) ) {
+			return array( 'error' => __( 'Please select a valid relationship.', 'fc-courses' ) );
+		}
+
+		if ( ! $coc_agreed ) {
+			return array( 'error' => __( 'Please agree to the Participant Code of Conduct to continue.', 'fc-courses' ) );
+		}
+
+		$allowed_ethnicities = self::get_ethnicity_options();
+		$ethnicity           = array_values( array_filter( $ethnicity, function ( $e ) use ( $allowed_ethnicities ) {
+			return in_array( $e, $allowed_ethnicities, true );
+		} ) );
+
+		global $wpdb;
+		$wpdb->update(
+			$wpdb->prefix . 'fc_applicants',
+			array(
+				'full_name'    => $full_name,
+				'town_region'  => $town_region,
+				'phone'        => $phone,
+				'email'        => $email,
+				'relationship' => $relationship,
+				'ethnicity'    => implode( ', ', $ethnicity ),
+				'coc_agreed'   => 1,
+				'status'       => 'enrolled',
+			),
+			array( 'id' => $applicant->id ),
+			array( '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s' ),
+			array( '%d' )
+		);
+
+		return array( 'message' => __( 'Thank you! Your enrolment has been received. We will be in touch with further details about your course dates.', 'fc-courses' ) );
+	}
+
+	/**
+	 * Look up an FC applicant by their approval code.
+	 *
+	 * @param string $code Approval code (uppercased).
+	 * @return object|null
+	 */
+	private function get_fc_applicant_by_code( $code ) {
+		if ( ! $code ) {
+			return null;
+		}
+		global $wpdb;
+		return $wpdb->get_row( $wpdb->prepare(
+			"SELECT * FROM {$wpdb->prefix}fc_applicants WHERE approval_code = %s",
+			$code
+		) );
+	}
+
+	// ------------------------------------------------------------------
+	// [fc_leader_eoi]
+	// ------------------------------------------------------------------
+
+	/**
+	 * Render the expression of interest form for the Leaders Training.
+	 *
+	 * @param array $atts Shortcode attributes (unused).
+	 * @return string HTML output.
+	 */
+	public function leader_eoi( $atts ) {
+		$form_message = '';
+		$form_error   = '';
+
+		if ( isset( $_POST['fc_leader_eoi_nonce'] ) ) {
+			$result       = $this->process_leader_eoi();
+			$form_message = $result['message'] ?? '';
+			$form_error   = $result['error'] ?? '';
+		}
+
+		ob_start();
+		include FC_COURSES_PLUGIN_DIR . 'public/views/leader-eoi.php';
+		return ob_get_clean();
+	}
+
+	/**
+	 * Process the Leaders Training expression of interest form.
+	 *
+	 * @return array Keys: 'message' (success) or 'error'.
+	 */
+	private function process_leader_eoi() {
+		if ( ! isset( $_POST['fc_leader_eoi_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['fc_leader_eoi_nonce'] ), 'fc_leader_eoi' ) ) {
+			return array( 'error' => __( 'Security check failed. Please try again.', 'fc-courses' ) );
+		}
+
+		$full_name        = sanitize_text_field( wp_unslash( $_POST['full_name'] ?? '' ) );
+		$participant_type = sanitize_text_field( wp_unslash( $_POST['participant_type'] ?? '' ) );
+		$town_region      = sanitize_text_field( wp_unslash( $_POST['town_region'] ?? '' ) );
+		$phone            = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
+		$email            = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+
+		// Always-required fields.
+		if ( ! $full_name || ! $town_region || ! $phone || ! is_email( $email ) ) {
+			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
+		}
+
+		$allowed_types = array( 'clinician', 'whanau' );
+		if ( ! in_array( $participant_type, $allowed_types, true ) ) {
+			return array( 'error' => __( 'Please select whether you are a clinician or whānau member.', 'fc-courses' ) );
+		}
+
+		// Clinician-specific fields.
+		$profession          = '';
+		$place_of_employment = '';
+		$management_approval = '';
+
+		if ( 'clinician' === $participant_type ) {
+			$profession          = sanitize_text_field( wp_unslash( $_POST['profession'] ?? '' ) );
+			$place_of_employment = sanitize_text_field( wp_unslash( $_POST['place_of_employment'] ?? '' ) );
+			$management_approval = sanitize_text_field( wp_unslash( $_POST['management_approval'] ?? '' ) );
+
+			if ( ! $profession || ! $place_of_employment ) {
+				return array( 'error' => __( 'Please fill in all required clinician fields.', 'fc-courses' ) );
+			}
+			$allowed_answers = array( 'yes', 'no', 'unsure' );
+			if ( ! in_array( $management_approval, $allowed_answers, true ) ) {
+				return array( 'error' => __( 'Please indicate management approval.', 'fc-courses' ) );
+			}
+		}
+
+		// Whānau-specific fields.
+		$fc_participation  = '';
+		$leader_endorsement = '';
+
+		if ( 'whanau' === $participant_type ) {
+			$fc_participation  = sanitize_textarea_field( wp_unslash( $_POST['fc_participation'] ?? '' ) );
+			$leader_endorsement = sanitize_text_field( wp_unslash( $_POST['leader_endorsement'] ?? '' ) );
+		}
+
+		global $wpdb;
+		$wpdb->insert(
+			$wpdb->prefix . 'fc_leader_applicants',
+			array(
+				'full_name'           => $full_name,
+				'participant_type'    => $participant_type,
+				'profession'          => $profession,
+				'place_of_employment' => $place_of_employment,
+				'management_approval' => $management_approval,
+				'town_region'         => $town_region,
+				'phone'               => $phone,
+				'email'               => $email,
+				'fc_participation'    => $fc_participation,
+				'leader_endorsement'  => $leader_endorsement,
+				'status'              => 'pending',
+			),
+			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+		);
+
+		// Notify admin.
+		$from_name   = get_option( 'fc_from_name', get_bloginfo( 'name' ) );
+		$from_email  = get_option( 'fc_from_email', get_option( 'admin_email' ) );
+		$admin_email = get_option( 'fc_admin_email', get_option( 'admin_email' ) );
+		$headers     = array(
+			'Content-Type: text/html; charset=UTF-8',
+			"From: {$from_name} <{$from_email}>",
+		);
+
+		$type_label  = 'clinician' === $participant_type ? __( 'Clinician', 'fc-courses' ) : __( 'Whānau member', 'fc-courses' );
+		$admin_body  = '<p>' . esc_html__( 'A new expression of interest has been submitted for the Leaders Training.', 'fc-courses' ) . '</p>';
+		$admin_body .= '<ul>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Name:', 'fc-courses' ) . '</strong> ' . esc_html( $full_name ) . '</li>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Type:', 'fc-courses' ) . '</strong> ' . esc_html( $type_label ) . '</li>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Email:', 'fc-courses' ) . '</strong> ' . esc_html( $email ) . '</li>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Phone:', 'fc-courses' ) . '</strong> ' . esc_html( $phone ) . '</li>';
+		$admin_body .= '<li><strong>' . esc_html__( 'Town/Region:', 'fc-courses' ) . '</strong> ' . esc_html( $town_region ) . '</li>';
+		if ( 'clinician' === $participant_type ) {
+			$admin_body .= '<li><strong>' . esc_html__( 'Profession:', 'fc-courses' ) . '</strong> ' . esc_html( $profession ) . '</li>';
+			$admin_body .= '<li><strong>' . esc_html__( 'Place of Employment:', 'fc-courses' ) . '</strong> ' . esc_html( $place_of_employment ) . '</li>';
+			$admin_body .= '<li><strong>' . esc_html__( 'Management Approval:', 'fc-courses' ) . '</strong> ' . esc_html( ucfirst( $management_approval ) ) . '</li>';
+		}
+		if ( 'whanau' === $participant_type ) {
+			$admin_body .= '<li><strong>' . esc_html__( 'FC Participation:', 'fc-courses' ) . '</strong> ' . esc_html( $fc_participation ) . '</li>';
+			$admin_body .= '<li><strong>' . esc_html__( 'Leader Endorsement:', 'fc-courses' ) . '</strong> ' . esc_html( $leader_endorsement ) . '</li>';
+		}
+		$admin_body .= '</ul>';
+		$admin_body .= '<p><a href="' . esc_url( admin_url( 'admin.php?page=fc-courses-leader-applicants' ) ) . '">' . esc_html__( 'View Leader Applicants', 'fc-courses' ) . '</a></p>';
+
+		wp_mail( $admin_email, __( 'New Expression of Interest: Leaders Training', 'fc-courses' ), $admin_body, $headers );
+
+		return array( 'message' => __( 'Thank you for your expression of interest in the Leaders Training! We will review your application and be in touch soon.', 'fc-courses' ) );
+	}
+
+	// ------------------------------------------------------------------
+	// [fc_leader_enrolment]
+	// ------------------------------------------------------------------
+
+	/**
+	 * Render the code-gated full enrolment form for the Leaders Training.
+	 *
+	 * @param array $atts Shortcode attributes (unused).
+	 * @return string HTML output.
+	 */
+	public function leader_enrolment( $atts ) {
+		$form_message      = '';
+		$form_error        = '';
+		$applicant         = null;
+		$step              = 'code';
+		$code              = '';
+		$ethnicity_options = self::get_ethnicity_options();
+		$leader_coc        = self::get_leader_coc();
+
+		if ( isset( $_POST['fc_leader_code_nonce'] ) ) {
+			if ( ! wp_verify_nonce( sanitize_key( $_POST['fc_leader_code_nonce'] ), 'fc_leader_enrolment_code' ) ) {
+				$form_error = __( 'Security check failed. Please try again.', 'fc-courses' );
+			} else {
+				$code      = strtoupper( sanitize_text_field( wp_unslash( $_POST['fc_approval_code'] ?? '' ) ) );
+				$applicant = $this->get_leader_applicant_by_code( $code );
+				if ( ! $applicant ) {
+					$form_error = __( 'Invalid code. Please check your email and try again.', 'fc-courses' );
+				} elseif ( 'approved' !== $applicant->status ) {
+					$form_error = __( 'This code has already been used or is no longer valid.', 'fc-courses' );
+				} else {
+					$step = 'form';
+				}
+			}
+		} elseif ( isset( $_POST['fc_leader_full_nonce'] ) ) {
+			$result       = $this->process_leader_enrolment();
+			$form_message = $result['message'] ?? '';
+			$form_error   = $result['error'] ?? '';
+			if ( $form_error ) {
+				$code      = strtoupper( sanitize_text_field( wp_unslash( $_POST['fc_approval_code'] ?? '' ) ) );
+				$applicant = $this->get_leader_applicant_by_code( $code );
+				if ( $applicant && 'approved' === $applicant->status ) {
+					$step = 'form';
+				}
+			}
+		}
+
+		ob_start();
+		include FC_COURSES_PLUGIN_DIR . 'public/views/leader-enrolment.php';
+		return ob_get_clean();
+	}
+
+	/**
+	 * Process the Leaders Training full enrolment form submission.
+	 *
+	 * @return array Keys: 'message' (success) or 'error'.
+	 */
+	private function process_leader_enrolment() {
+		if ( ! isset( $_POST['fc_leader_full_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['fc_leader_full_nonce'] ), 'fc_leader_enrolment' ) ) {
+			return array( 'error' => __( 'Security check failed. Please try again.', 'fc-courses' ) );
+		}
+
+		$code      = strtoupper( sanitize_text_field( wp_unslash( $_POST['fc_approval_code'] ?? '' ) ) );
+		$applicant = $this->get_leader_applicant_by_code( $code );
+
+		if ( ! $applicant ) {
+			return array( 'error' => __( 'Invalid code. Please contact us for assistance.', 'fc-courses' ) );
+		}
+		if ( 'approved' !== $applicant->status ) {
+			return array( 'error' => __( 'This code has already been used or is no longer valid.', 'fc-courses' ) );
+		}
+
+		$full_name        = sanitize_text_field( wp_unslash( $_POST['full_name'] ?? '' ) );
+		$participant_type = $applicant->participant_type; // type is fixed from EOI
+		$town_region      = sanitize_text_field( wp_unslash( $_POST['town_region'] ?? '' ) );
+		$phone            = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
+		$email            = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
+		$training_dates   = sanitize_textarea_field( wp_unslash( $_POST['training_dates'] ?? '' ) );
+		$payment_method   = sanitize_text_field( wp_unslash( $_POST['payment_method'] ?? '' ) );
+		$payment_reference = sanitize_text_field( wp_unslash( $_POST['payment_reference'] ?? '' ) );
+		$payment_notes    = sanitize_textarea_field( wp_unslash( $_POST['payment_notes'] ?? '' ) );
+		$coc_agreed       = ! empty( $_POST['coc_agreed'] );
+
+		if ( ! $full_name || ! $town_region || ! $phone || ! is_email( $email ) ) {
+			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
+		}
+		if ( ! $coc_agreed ) {
+			return array( 'error' => __( 'Please agree to the Leader Code of Conduct to continue.', 'fc-courses' ) );
+		}
+
+		// Clinician-specific fields.
+		$profession          = '';
+		$place_of_employment = '';
+		$management_approval = '';
+		$dbt_trained         = '';
+		$billing_contact     = '';
+		$fc_participation    = $applicant->fc_participation;
+		$leader_endorsement  = $applicant->leader_endorsement;
+
+		if ( 'clinician' === $participant_type ) {
+			$profession          = sanitize_text_field( wp_unslash( $_POST['profession'] ?? '' ) );
+			$place_of_employment = sanitize_text_field( wp_unslash( $_POST['place_of_employment'] ?? '' ) );
+			$management_approval = sanitize_text_field( wp_unslash( $_POST['management_approval'] ?? '' ) );
+			$dbt_trained         = sanitize_text_field( wp_unslash( $_POST['dbt_trained'] ?? '' ) );
+			$billing_contact     = sanitize_textarea_field( wp_unslash( $_POST['billing_contact'] ?? '' ) );
+
+			if ( ! $profession || ! $place_of_employment ) {
+				return array( 'error' => __( 'Please fill in all required clinician fields.', 'fc-courses' ) );
+			}
+			$allowed_answers = array( 'yes', 'no', 'unsure' );
+			if ( ! in_array( $management_approval, $allowed_answers, true ) ) {
+				return array( 'error' => __( 'Please indicate management approval.', 'fc-courses' ) );
+			}
+		} elseif ( 'whanau' === $participant_type ) {
+			$fc_participation   = sanitize_textarea_field( wp_unslash( $_POST['fc_participation'] ?? '' ) );
+			$leader_endorsement = sanitize_text_field( wp_unslash( $_POST['leader_endorsement'] ?? '' ) );
+		}
+
+		$ethnicity = isset( $_POST['ethnicity'] ) && is_array( $_POST['ethnicity'] )
+			? array_map( 'sanitize_text_field', array_map( 'wp_unslash', $_POST['ethnicity'] ) )
+			: array();
+		$allowed_ethnicities = self::get_ethnicity_options();
+		$ethnicity           = array_values( array_filter( $ethnicity, function ( $e ) use ( $allowed_ethnicities ) {
+			return in_array( $e, $allowed_ethnicities, true );
+		} ) );
+
+		global $wpdb;
+		$wpdb->update(
+			$wpdb->prefix . 'fc_leader_applicants',
+			array(
+				'full_name'           => $full_name,
+				'profession'          => $profession,
+				'place_of_employment' => $place_of_employment,
+				'management_approval' => $management_approval,
+				'dbt_trained'         => $dbt_trained,
+				'billing_contact'     => $billing_contact,
+				'town_region'         => $town_region,
+				'phone'               => $phone,
+				'email'               => $email,
+				'fc_participation'    => $fc_participation,
+				'leader_endorsement'  => $leader_endorsement,
+				'ethnicity'           => implode( ', ', $ethnicity ),
+				'training_dates'      => $training_dates,
+				'payment_method'      => $payment_method,
+				'payment_reference'   => $payment_reference,
+				'payment_notes'       => $payment_notes,
+				'coc_agreed'          => 1,
+				'status'              => 'enrolled',
+			),
+			array( 'id' => $applicant->id ),
+			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s' ),
+			array( '%d' )
+		);
+
+		return array( 'message' => __( 'Thank you! Your Leaders Training enrolment has been received. We will be in touch with further details.', 'fc-courses' ) );
+	}
+
+	/**
+	 * Look up a leader applicant by their approval code.
+	 *
+	 * @param string $code Approval code (uppercased).
+	 * @return object|null
+	 */
+	private function get_leader_applicant_by_code( $code ) {
+		if ( ! $code ) {
+			return null;
+		}
+		global $wpdb;
+		return $wpdb->get_row( $wpdb->prepare(
+			"SELECT * FROM {$wpdb->prefix}fc_leader_applicants WHERE approval_code = %s",
+			$code
+		) );
+	}
+
+	// ------------------------------------------------------------------
+	// Confirmation email (course enrolments)
+	// ------------------------------------------------------------------
 
 	/**
 	 * Send a confirmation email to the enrollee and the admin.

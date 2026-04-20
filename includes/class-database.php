@@ -25,7 +25,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class FC_Courses_Database {
 
 	/** Current schema version. Bump when altering tables. */
-	const SCHEMA_VERSION = 3;
+	const SCHEMA_VERSION = 4;
 
 	/** Option key used to track installed schema version. */
 	const OPTION_KEY = 'fc_courses_db_version';
@@ -159,23 +159,64 @@ class FC_Courses_Database {
 		dbDelta( $sql );
 
 		// ------------------------------------------------------------------
-		// Applicants (expression of interest)
+		// Applicants (expression of interest – Family Connections)
 		// ------------------------------------------------------------------
 		$sql = "CREATE TABLE {$wpdb->prefix}fc_applicants (
-			id             BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-			full_name      VARCHAR(255)        NOT NULL DEFAULT '',
-			town_region    VARCHAR(255)        NOT NULL DEFAULT '',
-			phone          VARCHAR(30)         NOT NULL DEFAULT '',
-			email          VARCHAR(255)        NOT NULL DEFAULT '',
-			relationship   VARCHAR(100)        NOT NULL DEFAULT '',
-			ethnicity      TEXT                NOT NULL DEFAULT '',
-			status         VARCHAR(20)         NOT NULL DEFAULT 'pending',
-			notes          TEXT                DEFAULT NULL,
-			applied_at     DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			updated_at     DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			id                    BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			full_name             VARCHAR(255)        NOT NULL DEFAULT '',
+			town_region           VARCHAR(255)        NOT NULL DEFAULT '',
+			phone                 VARCHAR(30)         NOT NULL DEFAULT '',
+			email                 VARCHAR(255)        NOT NULL DEFAULT '',
+			mental_health_current VARCHAR(10)         NOT NULL DEFAULT '',
+			mental_health_past    VARCHAR(10)         NOT NULL DEFAULT '',
+			loved_one_age         VARCHAR(10)         NOT NULL DEFAULT '',
+			relationship          VARCHAR(100)        NOT NULL DEFAULT '',
+			ethnicity             TEXT                NOT NULL DEFAULT '',
+			coc_agreed            TINYINT(1)          NOT NULL DEFAULT 0,
+			status                VARCHAR(20)         NOT NULL DEFAULT 'pending',
+			approval_code         VARCHAR(32)         DEFAULT NULL,
+			notes                 TEXT                DEFAULT NULL,
+			applied_at            DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at            DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 			PRIMARY KEY (id),
+			UNIQUE KEY approval_code (approval_code),
 			KEY email (email),
 			KEY status (status)
+		) $charset;";
+		dbDelta( $sql );
+
+		// ------------------------------------------------------------------
+		// Leader Applicants (expression of interest – Leaders Training)
+		// ------------------------------------------------------------------
+		$sql = "CREATE TABLE {$wpdb->prefix}fc_leader_applicants (
+			id                  BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+			full_name           VARCHAR(255)        NOT NULL DEFAULT '',
+			participant_type    VARCHAR(20)         NOT NULL DEFAULT '',
+			profession          VARCHAR(255)        NOT NULL DEFAULT '',
+			place_of_employment VARCHAR(255)        NOT NULL DEFAULT '',
+			management_approval VARCHAR(10)         NOT NULL DEFAULT '',
+			dbt_trained         VARCHAR(5)          NOT NULL DEFAULT '',
+			billing_contact     TEXT,
+			town_region         VARCHAR(255)        NOT NULL DEFAULT '',
+			phone               VARCHAR(30)         NOT NULL DEFAULT '',
+			email               VARCHAR(255)        NOT NULL DEFAULT '',
+			fc_participation    TEXT,
+			leader_endorsement  TEXT,
+			ethnicity           TEXT                NOT NULL DEFAULT '',
+			training_dates      TEXT,
+			payment_method      VARCHAR(50)         NOT NULL DEFAULT '',
+			payment_reference   VARCHAR(100)        NOT NULL DEFAULT '',
+			payment_notes       TEXT,
+			coc_agreed          TINYINT(1)          NOT NULL DEFAULT 0,
+			status              VARCHAR(20)         NOT NULL DEFAULT 'pending',
+			approval_code       VARCHAR(32)         DEFAULT NULL,
+			notes               TEXT                DEFAULT NULL,
+			applied_at          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at          DATETIME            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+			PRIMARY KEY (id),
+			UNIQUE KEY leader_approval_code (approval_code),
+			KEY leader_email (email),
+			KEY leader_status (status)
 		) $charset;";
 		dbDelta( $sql );
 
