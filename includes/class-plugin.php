@@ -30,6 +30,9 @@ class FC_Courses_Plugin {
 		// Database.
 		new FC_Courses_Database();
 
+		// Roles – ensure the National Co-ordinator role exists.
+		FC_Courses_Roles::maybe_repair();
+
 		// Admin.
 		if ( is_admin() ) {
 			$admin = new FC_Courses_Admin();

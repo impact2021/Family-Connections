@@ -238,4 +238,25 @@
 		$calWrap.show();
 	}
 
+	// ── Expression of interest – Code of Conduct modal ─────────
+
+	var $cocModal = $( '#fc-coc-modal' );
+
+	$( '.fc-coc-open' ).on( 'click', function ( e ) {
+		e.preventDefault();
+		$cocModal.removeAttr( 'hidden' );
+		$cocModal.find( '.fc-modal-close' ).first().trigger( 'focus' );
+		$( document ).on( 'keydown.fc-coc-modal', function ( ev ) {
+			if ( 27 === ev.which ) {
+				$cocModal.attr( 'hidden', 'hidden' );
+				$( document ).off( 'keydown.fc-coc-modal' );
+			}
+		} );
+	} );
+
+	$( '.fc-coc-close' ).on( 'click', function () {
+		$cocModal.attr( 'hidden', 'hidden' );
+		$( document ).off( 'keydown.fc-coc-modal' );
+	} );
+
 } )( jQuery );
