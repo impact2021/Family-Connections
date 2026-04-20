@@ -9,7 +9,8 @@
  *  $form_message      string       – success message
  *  $form_error        string       – error message
  *  $ethnicity_options array        – list of ethnicity options
- *  $leader_coc        string       – Leader CoC text
+ *  $training_date_options array        – open upcoming course-date objects for leader training
+ *  $leader_coc            string       – Leader CoC text
  *
  * @package FC_Courses
  */
@@ -194,10 +195,30 @@ echo isset( $_POST['fc_participation'] ) ? esc_textarea( sanitize_textarea_field
 
 <!-- Dates of Training -->
 <div class="fc-eoi-field fc-eoi-field--full">
-<label for="fc_lf_training_dates"><?php esc_html_e( 'Dates of Training', 'fc-courses' ); ?></label>
-<textarea name="training_dates" id="fc_lf_training_dates" rows="3" class="fc-textarea"><?php
-echo isset( $_POST['training_dates'] ) ? esc_textarea( sanitize_textarea_field( wp_unslash( $_POST['training_dates'] ) ) ) : '';
-?></textarea>
+<label><?php esc_html_e( 'Dates of Training', 'fc-courses' ); ?><?php if ( ! empty( $training_date_options ) ) : ?> <span class="fc-required">*</span><?php endif; ?></label>
+<?php if ( empty( $training_date_options ) ) : ?>
+<p class="fc-field-hint"><?php esc_html_e( 'No training dates are currently available. Please contact us for more information.', 'fc-courses' ); ?></p>
+<?php else : ?>
+<div class="fc-radio-group">
+<?php
+$posted_training = isset( $_POST['training_dates'] ) ? absint( $_POST['training_dates'] ) : 0;
+foreach ( $training_date_options as $td ) :
+	$td_label = wp_date( get_option( 'date_format' ), strtotime( $td->start_date ) );
+	if ( ! empty( $td->end_date ) ) {
+		$td_label .= ' – ' . wp_date( get_option( 'date_format' ), strtotime( $td->end_date ) );
+	}
+	if ( ! empty( $td->location ) ) {
+		$td_label .= ', ' . $td->location;
+	}
+?>
+<label class="fc-radio-option">
+<input type="radio" name="training_dates" value="<?php echo esc_attr( $td->id ); ?>"
+	<?php checked( $posted_training, $td->id ); ?> required>
+<?php echo esc_html( $td_label ); ?>
+</label>
+<?php endforeach; ?>
+</div>
+<?php endif; ?>
 </div>
 
 <!-- Payment Details -->

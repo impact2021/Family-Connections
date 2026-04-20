@@ -1043,13 +1043,14 @@ class FC_Courses_Shortcodes {
 	 * @return string HTML output.
 	 */
 	public function leader_enrolment( $atts ) {
-		$form_message      = '';
-		$form_error        = '';
-		$applicant         = null;
-		$step              = 'code';
-		$code              = '';
-		$ethnicity_options = self::get_ethnicity_options();
-		$leader_coc        = self::get_leader_coc();
+		$form_message          = '';
+		$form_error            = '';
+		$applicant             = null;
+		$step                  = 'code';
+		$code                  = '';
+		$ethnicity_options     = self::get_ethnicity_options();
+		$leader_coc            = self::get_leader_coc();
+		$training_date_options = $this->get_leader_training_dates();
 
 		if ( isset( $_POST['fc_leader_code_nonce'] ) ) {
 			if ( ! wp_verify_nonce( sanitize_key( $_POST['fc_leader_code_nonce'] ), 'fc_leader_enrolment_code' ) ) {
@@ -1108,11 +1109,34 @@ class FC_Courses_Shortcodes {
 		$town_region      = sanitize_text_field( wp_unslash( $_POST['town_region'] ?? '' ) );
 		$phone            = sanitize_text_field( wp_unslash( $_POST['phone'] ?? '' ) );
 		$email            = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );
-		$training_dates   = sanitize_textarea_field( wp_unslash( $_POST['training_dates'] ?? '' ) );
+		$training_date_id = absint( $_POST['training_dates'] ?? 0 );
 		$payment_method   = sanitize_text_field( wp_unslash( $_POST['payment_method'] ?? '' ) );
 		$payment_reference = sanitize_text_field( wp_unslash( $_POST['payment_reference'] ?? '' ) );
 		$payment_notes    = sanitize_textarea_field( wp_unslash( $_POST['payment_notes'] ?? '' ) );
 		$coc_agreed       = ! empty( $_POST['coc_agreed'] );
+
+		// Resolve training date label from the available options.
+		$available_dates = $this->get_leader_training_dates();
+		$training_dates  = '';
+		if ( ! empty( $available_dates ) ) {
+			$matched = null;
+			foreach ( $available_dates as $td ) {
+				if ( (int) $td->id === $training_date_id ) {
+					$matched = $td;
+					break;
+				}
+			}
+			if ( ! $matched ) {
+				return array( 'error' => __( 'Please select a training date.', 'fc-courses' ) );
+			}
+			$training_dates = wp_date( get_option( 'date_format' ), strtotime( $matched->start_date ) );
+			if ( ! empty( $matched->end_date ) ) {
+				$training_dates .= ' – ' . wp_date( get_option( 'date_format' ), strtotime( $matched->end_date ) );
+			}
+			if ( ! empty( $matched->location ) ) {
+				$training_dates .= ', ' . $matched->location;
+			}
+		}
 
 		if ( ! $full_name || ! $town_region || ! $phone || ! is_email( $email ) ) {
 			return array( 'error' => __( 'Please fill in all required fields.', 'fc-courses' ) );
@@ -1186,6 +1210,26 @@ class FC_Courses_Shortcodes {
 		);
 
 		return array( 'message' => __( 'Thank you! Your Leaders Training enrolment has been received. We will be in touch with further details.', 'fc-courses' ) );
+	}
+
+	/**
+	 * Return open, upcoming course-date rows for the Leaders Training course.
+	 *
+	 * @return array Array of objects with id, start_date, end_date, location.
+	 */
+	private function get_leader_training_dates() {
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- no user input; table prefix is safe
+		return $wpdb->get_results(
+			"SELECT cd.id, cd.start_date, cd.end_date, cd.location
+			 FROM {$wpdb->prefix}fc_course_dates cd
+			 INNER JOIN {$wpdb->prefix}fc_courses c ON c.id = cd.course_id
+			 WHERE cd.status = 'open'
+			   AND cd.start_date >= CURDATE()
+			   AND c.slug = 'train-the-trainer'
+			   AND c.status = 'publish'
+			 ORDER BY cd.start_date ASC"
+		);
 	}
 
 	/**
