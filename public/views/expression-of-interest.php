@@ -43,40 +43,39 @@ if ( '' !== trim( $coc_content ) ) {
 <form class="fc-eoi-form" method="post">
 <?php wp_nonce_field( 'fc_expression_of_interest', 'fc_eoi_nonce' ); ?>
 
-<table class="fc-form-table">
+<div class="fc-eoi-grid">
 
 <!-- Full Name -->
-<tr>
-<th><label for="fc_eoi_full_name"><?php esc_html_e( 'Full Name', 'fc-courses' ); ?> <span class="fc-required">*</span></label></th>
-<td><input type="text" name="full_name" id="fc_eoi_full_name" required
-     value="<?php echo isset( $_POST['full_name'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['full_name'] ) ) ) : ''; ?>"></td>
-</tr>
+<div class="fc-eoi-field">
+<label for="fc_eoi_full_name"><?php esc_html_e( 'Full Name', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
+<input type="text" name="full_name" id="fc_eoi_full_name" required
+     value="<?php echo isset( $_POST['full_name'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['full_name'] ) ) ) : ''; ?>">
+</div>
 
 <!-- Town / Region -->
-<tr>
-<th><label for="fc_eoi_town_region"><?php esc_html_e( 'Town / Region', 'fc-courses' ); ?> <span class="fc-required">*</span></label></th>
-<td><input type="text" name="town_region" id="fc_eoi_town_region" required
-     value="<?php echo isset( $_POST['town_region'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['town_region'] ) ) ) : ''; ?>"></td>
-</tr>
+<div class="fc-eoi-field">
+<label for="fc_eoi_town_region"><?php esc_html_e( 'Town / Region', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
+<input type="text" name="town_region" id="fc_eoi_town_region" required
+     value="<?php echo isset( $_POST['town_region'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['town_region'] ) ) ) : ''; ?>">
+</div>
 
 <!-- Phone -->
-<tr>
-<th><label for="fc_eoi_phone"><?php esc_html_e( 'Phone Number', 'fc-courses' ); ?> <span class="fc-required">*</span></label></th>
-<td><input type="tel" name="phone" id="fc_eoi_phone" required
-     value="<?php echo isset( $_POST['phone'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['phone'] ) ) ) : ''; ?>"></td>
-</tr>
+<div class="fc-eoi-field">
+<label for="fc_eoi_phone"><?php esc_html_e( 'Phone Number', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
+<input type="tel" name="phone" id="fc_eoi_phone" required
+     value="<?php echo isset( $_POST['phone'] ) ? esc_attr( sanitize_text_field( wp_unslash( $_POST['phone'] ) ) ) : ''; ?>">
+</div>
 
 <!-- Email -->
-<tr>
-<th><label for="fc_eoi_email"><?php esc_html_e( 'Email', 'fc-courses' ); ?> <span class="fc-required">*</span></label></th>
-<td><input type="email" name="email" id="fc_eoi_email" required
-     value="<?php echo isset( $_POST['email'] ) ? esc_attr( sanitize_email( wp_unslash( $_POST['email'] ) ) ) : ''; ?>"></td>
-</tr>
+<div class="fc-eoi-field">
+<label for="fc_eoi_email"><?php esc_html_e( 'Email', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
+<input type="email" name="email" id="fc_eoi_email" required
+     value="<?php echo isset( $_POST['email'] ) ? esc_attr( sanitize_email( wp_unslash( $_POST['email'] ) ) ) : ''; ?>">
+</div>
 
 <!-- Relationship -->
-<tr>
-<th><label for="fc_eoi_relationship"><?php esc_html_e( 'Relationship to the main person you are attending the course for', 'fc-courses' ); ?> <span class="fc-required">*</span></label></th>
-<td>
+<div class="fc-eoi-field fc-eoi-field--full">
+<label for="fc_eoi_relationship"><?php esc_html_e( 'Relationship to the main person you are attending the course for', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
 <select name="relationship" id="fc_eoi_relationship" required>
 <option value=""><?php esc_html_e( '— Select —', 'fc-courses' ); ?></option>
 <?php foreach ( $relationship_options as $value => $label ) : ?>
@@ -85,15 +84,12 @@ if ( '' !== trim( $coc_content ) ) {
 </option>
 <?php endforeach; ?>
 </select>
-</td>
-</tr>
+</div>
 
 <!-- Ethnicity -->
-<tr>
-<th><label><?php esc_html_e( 'Ethnicity', 'fc-courses' ); ?></label>
+<div class="fc-eoi-field fc-eoi-field--full">
+<label><?php esc_html_e( 'Ethnicity', 'fc-courses' ); ?></label>
 <span class="fc-field-hint"><?php esc_html_e( '(Select all that apply)', 'fc-courses' ); ?></span>
-</th>
-<td>
 <div class="fc-ethnicity-options">
 <?php
 $posted_ethnicity = isset( $_POST['ethnicity'] ) && is_array( $_POST['ethnicity'] )
@@ -108,13 +104,10 @@ foreach ( $ethnicity_options as $option ) :
 </label>
 <?php endforeach; ?>
 </div>
-</td>
-</tr>
+</div>
 
 <!-- Code of Conduct -->
-<tr>
-<th></th>
-<td>
+<div class="fc-eoi-field fc-eoi-field--full">
 <div class="fc-coc-wrap">
 <label class="fc-checkbox-option fc-coc-label">
 <input type="checkbox" name="coc_agreed" id="fc_eoi_coc" value="1" required
@@ -129,18 +122,14 @@ printf(
 </label>
 <span class="fc-required">*</span>
 </div>
-</td>
-</tr>
+</div>
 
 <!-- Submit -->
-<tr>
-<th></th>
-<td>
+<div class="fc-eoi-field fc-eoi-field--full">
 <button type="submit" class="fc-submit-btn button button-primary"><?php esc_html_e( 'Submit Expression of Interest', 'fc-courses' ); ?></button>
-</td>
-</tr>
+</div>
 
-</table>
+</div>
 </form>
 <?php endif; ?>
 

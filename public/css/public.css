@@ -230,42 +230,32 @@ width: 180px;
 
 /* ── Expression of interest form ────────────────────────────── */
 .fc-eoi-wrap {
-	max-width: 700px;
 	margin: 24px 0;
 }
 
-.fc-eoi-form .fc-form-table {
-	width: 100%;
-	border-collapse: collapse;
-	margin-bottom: 16px;
+/* 2-column grid on desktop */
+.fc-eoi-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px 24px;
 }
 
-.fc-eoi-form .fc-form-table th,
-.fc-eoi-form .fc-form-table td {
-	padding: 10px 12px;
-	vertical-align: top;
-	border-bottom: 1px solid #e8e8e8;
+.fc-eoi-field--full {
+	grid-column: 1 / -1;
 }
 
-.fc-eoi-form .fc-form-table th {
-	width: 38%;
-	text-align: right;
+.fc-eoi-field label:not(.fc-checkbox-option) {
+	display: block;
 	font-weight: 600;
-	padding-right: 20px;
+	margin-bottom: 4px;
 	color: #333;
-	padding-top: 13px;
 }
 
-.fc-eoi-form .fc-form-table td {
-	width: 62%;
-}
-
-.fc-eoi-form .fc-form-table input[type="text"],
-.fc-eoi-form .fc-form-table input[type="email"],
-.fc-eoi-form .fc-form-table input[type="tel"],
-.fc-eoi-form .fc-form-table select {
+.fc-eoi-field input[type="text"],
+.fc-eoi-field input[type="email"],
+.fc-eoi-field input[type="tel"],
+.fc-eoi-field select {
 	width: 100%;
-	max-width: 380px;
 	padding: 7px 10px;
 	border: 1px solid #ccc;
 	border-radius: 4px;
@@ -277,6 +267,7 @@ width: 180px;
 	font-size: 0.85em;
 	font-weight: normal;
 	color: #666;
+	margin-bottom: 6px;
 }
 
 .fc-ethnicity-options {
@@ -309,33 +300,10 @@ width: 180px;
 	font-weight: 600;
 }
 
+/* Responsive: single column on small screens */
 @media ( max-width: 560px ) {
-	.fc-eoi-form .fc-form-table,
-	.fc-eoi-form .fc-form-table tbody,
-	.fc-eoi-form .fc-form-table tr,
-	.fc-eoi-form .fc-form-table th,
-	.fc-eoi-form .fc-form-table td {
-		display: block;
-		width: 100%;
-	}
-
-	.fc-eoi-form .fc-form-table th {
-		text-align: left;
-		padding-right: 12px;
-		padding-bottom: 2px;
-		padding-top: 10px;
-		border-bottom: none;
-	}
-
-	.fc-eoi-form .fc-form-table td {
-		padding-top: 2px;
-	}
-
-	.fc-eoi-form .fc-form-table input[type="text"],
-	.fc-eoi-form .fc-form-table input[type="email"],
-	.fc-eoi-form .fc-form-table input[type="tel"],
-	.fc-eoi-form .fc-form-table select {
-		max-width: 100%;
+	.fc-eoi-grid {
+		grid-template-columns: 1fr;
 	}
 }
 

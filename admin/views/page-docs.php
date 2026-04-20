@@ -118,6 +118,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<li><code>[fc_course_registration course_id="2"]</code> — <?php esc_html_e( 'registration form locked to Train the Trainer (ID 2)', 'fc-courses' ); ?></li>
 		</ul>
 
+		<!-- ---- fc_expression_of_interest ---- -->
+		<h3><code>[fc_expression_of_interest]</code></h3>
+		<p><?php esc_html_e( 'Displays the Expression of Interest form for the Family Connections course. Visitors can submit their name, town/region, phone, email, relationship, and ethnicity, and agree to the Participant Code of Conduct. Submissions are held for admin review; the applicant receives an approval or rejection email once actioned.', 'fc-courses' ); ?></p>
+		<p><?php esc_html_e( 'This shortcode has no attributes. The form width is unconstrained — set it via your page or theme styles.', 'fc-courses' ); ?></p>
+
+		<p><strong><?php esc_html_e( 'Example:', 'fc-courses' ); ?></strong></p>
+		<ul>
+			<li><code>[fc_expression_of_interest]</code> — <?php esc_html_e( 'expression of interest form for the Family Connections course', 'fc-courses' ); ?></li>
+		</ul>
+
 		<!-- ============================================================ -->
 		<h2><?php esc_html_e( 'Typical Page Setup', 'fc-courses' ); ?></h2>
 		<p><?php esc_html_e( 'A common setup uses three pages:', 'fc-courses' ); ?></p>
