@@ -33,6 +33,8 @@ class FC_Courses_Admin {
 		add_action( 'admin_post_fc_delete_enrollment', array( $this, 'handle_delete_enrollment' ) );
 		add_action( 'admin_post_fc_update_applicant', array( $this, 'handle_update_applicant' ) );
 		add_action( 'admin_post_fc_delete_applicant', array( $this, 'handle_delete_applicant' ) );
+		add_action( 'admin_post_fc_update_leader_applicant', array( $this, 'handle_update_leader_applicant' ) );
+		add_action( 'admin_post_fc_delete_leader_applicant', array( $this, 'handle_delete_leader_applicant' ) );
 	}
 
 	// ------------------------------------------------------------------
@@ -73,6 +75,15 @@ class FC_Courses_Admin {
 			$capability,
 			'fc-courses-applicants',
 			array( $this, 'page_applicants' )
+		);
+
+		add_submenu_page(
+			'fc-courses',
+			__( 'Leader Applicants', 'fc-courses' ),
+			__( 'Leader Applicants', 'fc-courses' ),
+			$capability,
+			'fc-courses-leader-applicants',
+			array( $this, 'page_leader_applicants' )
 		);
 
 		add_submenu_page(
@@ -134,6 +145,7 @@ class FC_Courses_Admin {
 		$fc_pages = array(
 			'toplevel_page_fc-courses',
 			'fc-courses_page_fc-courses-applicants',
+			'fc-courses_page_fc-courses-leader-applicants',
 			'fc-courses_page_fc-courses-courses',
 			'fc-courses_page_fc-courses-course-dates',
 			'fc-courses_page_fc-courses-discount-codes',
@@ -217,10 +229,17 @@ class FC_Courses_Admin {
 	}
 
 	/**
-	 * Render the Applicants page.
+	 * Render the Applicants page (Family Connections EOI).
 	 */
 	public function page_applicants() {
 		$this->render_view( 'page-applicants' );
+	}
+
+	/**
+	 * Render the Leader Applicants page.
+	 */
+	public function page_leader_applicants() {
+		$this->render_view( 'page-leader-applicants' );
 	}
 
 	/**
@@ -488,7 +507,7 @@ class FC_Courses_Admin {
 
 	/**
 	 * Handle approve or reject an applicant.
-	 * Sends the configured email, then redirects back.
+	 * Sends the configured email (with approval code when approving), then redirects back.
 	 */
 	public function handle_update_applicant() {
 		check_admin_referer( 'fc_update_applicant' );
@@ -506,18 +525,35 @@ class FC_Courses_Admin {
 		if ( $id > 0 ) {
 			$applicant = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}fc_applicants WHERE id = %d", $id ) );
 
+			$update_data   = array( 'status' => $status, 'notes' => $notes );
+			$update_format = array( '%s', '%s' );
+
+			// Generate a unique code when newly approving.
+			$approval_code = $applicant->approval_code ?? '';
+			if ( 'approved' === $status && ! $approval_code ) {
+				do {
+					$approval_code = strtoupper( wp_generate_password( 12, false, false ) );
+					$taken         = $wpdb->get_var( $wpdb->prepare(
+						"SELECT id FROM {$wpdb->prefix}fc_applicants WHERE approval_code = %s",
+						$approval_code
+					) );
+				} while ( $taken );
+
+				$update_data['approval_code'] = $approval_code;
+				$update_format[]              = '%s';
+			}
+
 			$wpdb->update(
 				$wpdb->prefix . 'fc_applicants',
-				array(
-					'status' => $status,
-					'notes'  => $notes,
-				),
+				$update_data,
 				array( 'id' => $id ),
-				array( '%s', '%s' ),
+				$update_format,
 				array( '%d' )
 			);
 
 			if ( $applicant && in_array( $status, array( 'approved', 'rejected' ), true ) ) {
+				// Ensure the code is available on the object for the email.
+				$applicant->approval_code = $approval_code;
 				$this->send_applicant_decision_email( $applicant, $status );
 			}
 		}
@@ -569,17 +605,140 @@ class FC_Courses_Admin {
 
 		// Replace placeholders.
 		$body = str_replace(
-			array( '{name}', '{full_name}', '{email}', '{site_name}' ),
+			array( '{name}', '{full_name}', '{email}', '{site_name}', '{code}', '{approval_code}' ),
 			array(
 				esc_html( $applicant->full_name ),
 				esc_html( $applicant->full_name ),
 				esc_html( $applicant->email ),
 				esc_html( get_bloginfo( 'name' ) ),
+				esc_html( $applicant->approval_code ?? '' ),
+				esc_html( $applicant->approval_code ?? '' ),
 			),
 			$template
 		);
 
 		// Convert newlines to <br> if the body doesn't already contain block-level HTML tags.
+		if ( ! preg_match( '/<(p|ul|ol|h[1-6]|div|br)[^>]*>/i', $body ) ) {
+			$body = nl2br( $body );
+		}
+
+		wp_mail( $applicant->email, $subject, $body, $headers );
+	}
+
+	// ------------------------------------------------------------------
+	// Form handlers – Leader Applicants
+	// ------------------------------------------------------------------
+
+	/**
+	 * Handle approve or reject a leader applicant.
+	 * Generates a unique approval code when approving, then sends the decision email.
+	 */
+	public function handle_update_leader_applicant() {
+		check_admin_referer( 'fc_update_leader_applicant' );
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
+			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
+		}
+
+		global $wpdb;
+		$id     = absint( $_POST['applicant_id'] ?? 0 );
+		$status = in_array( $_POST['status'] ?? '', array( 'pending', 'approved', 'rejected' ), true )
+			? sanitize_text_field( wp_unslash( $_POST['status'] ) )
+			: 'pending';
+		$notes  = sanitize_textarea_field( wp_unslash( $_POST['notes'] ?? '' ) );
+
+		if ( $id > 0 ) {
+			$applicant = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}fc_leader_applicants WHERE id = %d", $id ) );
+
+			$update_data   = array( 'status' => $status, 'notes' => $notes );
+			$update_format = array( '%s', '%s' );
+
+			// Generate a unique code when newly approving.
+			$approval_code = $applicant->approval_code ?? '';
+			if ( 'approved' === $status && ! $approval_code ) {
+				do {
+					$approval_code = strtoupper( wp_generate_password( 12, false, false ) );
+					$taken         = $wpdb->get_var( $wpdb->prepare(
+						"SELECT id FROM {$wpdb->prefix}fc_leader_applicants WHERE approval_code = %s",
+						$approval_code
+					) );
+				} while ( $taken );
+
+				$update_data['approval_code'] = $approval_code;
+				$update_format[]              = '%s';
+			}
+
+			$wpdb->update(
+				$wpdb->prefix . 'fc_leader_applicants',
+				$update_data,
+				array( 'id' => $id ),
+				$update_format,
+				array( '%d' )
+			);
+
+			if ( $applicant && in_array( $status, array( 'approved', 'rejected' ), true ) ) {
+				$applicant->approval_code = $approval_code;
+				$this->send_leader_applicant_decision_email( $applicant, $status );
+			}
+		}
+
+		wp_safe_redirect( admin_url( 'admin.php?page=fc-courses-leader-applicants&updated=1' ) );
+		exit;
+	}
+
+	/**
+	 * Handle delete a leader applicant.
+	 */
+	public function handle_delete_leader_applicant() {
+		check_admin_referer( 'fc_delete_leader_applicant' );
+		if ( ! current_user_can( FC_Courses_Roles::CAP ) ) {
+			wp_die( esc_html__( 'Unauthorised', 'fc-courses' ) );
+		}
+
+		global $wpdb;
+		$id = absint( wp_unslash( $_GET['applicant_id'] ?? 0 ) );
+		if ( $id > 0 ) {
+			$wpdb->delete( $wpdb->prefix . 'fc_leader_applicants', array( 'id' => $id ), array( '%d' ) );
+		}
+
+		wp_safe_redirect( admin_url( 'admin.php?page=fc-courses-leader-applicants&deleted=1' ) );
+		exit;
+	}
+
+	/**
+	 * Send the approval or rejection email to a leader applicant.
+	 *
+	 * @param object $applicant Leader applicant row.
+	 * @param string $decision  'approved' or 'rejected'.
+	 */
+	private function send_leader_applicant_decision_email( $applicant, $decision ) {
+		$from_name  = get_option( 'fc_from_name', get_bloginfo( 'name' ) );
+		$from_email = get_option( 'fc_from_email', get_option( 'admin_email' ) );
+		$headers    = array(
+			'Content-Type: text/html; charset=UTF-8',
+			"From: {$from_name} <{$from_email}>",
+		);
+
+		if ( 'approved' === $decision ) {
+			$subject  = get_option( 'fc_leader_approval_email_subject', __( 'Your Leaders Training application has been approved', 'fc-courses' ) );
+			$template = get_option( 'fc_leader_approval_email_body', '' ) ?: FC_Courses_Shortcodes::get_default_leader_approval_email();
+		} else {
+			$subject  = get_option( 'fc_leader_rejection_email_subject', __( 'Your Leaders Training application', 'fc-courses' ) );
+			$template = get_option( 'fc_leader_rejection_email_body', '' ) ?: FC_Courses_Shortcodes::get_default_leader_rejection_email();
+		}
+
+		$body = str_replace(
+			array( '{name}', '{full_name}', '{email}', '{site_name}', '{code}', '{approval_code}' ),
+			array(
+				esc_html( $applicant->full_name ),
+				esc_html( $applicant->full_name ),
+				esc_html( $applicant->email ),
+				esc_html( get_bloginfo( 'name' ) ),
+				esc_html( $applicant->approval_code ?? '' ),
+				esc_html( $applicant->approval_code ?? '' ),
+			),
+			$template
+		);
+
 		if ( ! preg_match( '/<(p|ul|ol|h[1-6]|div|br)[^>]*>/i', $body ) ) {
 			$body = nl2br( $body );
 		}
@@ -615,6 +774,8 @@ class FC_Courses_Admin {
 			'fc_success_page_id',
 			'fc_approval_email_subject',
 			'fc_rejection_email_subject',
+			'fc_leader_approval_email_subject',
+			'fc_leader_rejection_email_subject',
 		);
 
 		foreach ( $fields as $field ) {
@@ -624,7 +785,14 @@ class FC_Courses_Admin {
 		}
 
 		// Textarea fields.
-		$textarea_fields = array( 'fc_approval_email_body', 'fc_rejection_email_body', 'fc_code_of_conduct' );
+		$textarea_fields = array(
+			'fc_approval_email_body',
+			'fc_rejection_email_body',
+			'fc_code_of_conduct',
+			'fc_leader_approval_email_body',
+			'fc_leader_rejection_email_body',
+			'fc_leader_coc',
+		);
 		foreach ( $textarea_fields as $field ) {
 			if ( isset( $_POST[ $field ] ) ) {
 				update_option( $field, sanitize_textarea_field( wp_unslash( $_POST[ $field ] ) ) );

@@ -1,6 +1,6 @@
 <?php
 /**
- * Admin view: Applicants dashboard (Family Connections expressions of interest).
+ * Admin view: Leader Applicants dashboard (Leaders Training expressions of interest).
  *
  * @package FC_Courses
  */
@@ -15,7 +15,6 @@ global $wpdb;
 $filter_status = isset( $_GET['filter_status'] ) ? sanitize_text_field( wp_unslash( $_GET['filter_status'] ) ) : '';
 $filter_search = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
 
-// Build WHERE.
 $where_parts = array( '1=1' );
 $args        = array();
 
@@ -32,28 +31,16 @@ if ( $filter_search ) {
 }
 
 $where = implode( ' AND ', $where_parts );
-$sql   = "SELECT a.* FROM {$wpdb->prefix}fc_applicants a WHERE {$where} ORDER BY a.applied_at DESC";
+$sql   = "SELECT a.* FROM {$wpdb->prefix}fc_leader_applicants a WHERE {$where} ORDER BY a.applied_at DESC";
 
 $applicants = $args
 	? $wpdb->get_results( $wpdb->prepare( $sql, $args ) ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	: $wpdb->get_results( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-// Selected applicant for edit panel.
-$edit_applicant = isset( $_GET['edit'] ) ? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}fc_applicants WHERE id = %d", absint( $_GET['edit'] ) ) ) : null;
-
-$relationship_labels = array(
-	'child'                => __( 'Child', 'fc-courses' ),
-	'romantic_partner'     => __( 'Romantic partner', 'fc-courses' ),
-	'ex_partner_co_parent' => __( 'Ex-partner / co-parent', 'fc-courses' ),
-	'sibling'              => __( 'Sibling', 'fc-courses' ),
-	'parent'               => __( 'Parent', 'fc-courses' ),
-	'friend'               => __( 'Friend', 'fc-courses' ),
-	'other'                => __( 'Other', 'fc-courses' ),
-);
-$mh_labels = array( 'yes' => 'Yes', 'no' => 'No', 'unsure' => 'Unsure', '' => '—' );
+$edit_applicant = isset( $_GET['edit'] ) ? $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}fc_leader_applicants WHERE id = %d", absint( $_GET['edit'] ) ) ) : null;
 ?>
 <div class="wrap fc-courses-wrap">
-	<h1 class="wp-heading-inline"><?php esc_html_e( 'FC Courses — Applicants (Family Connections)', 'fc-courses' ); ?></h1>
+	<h1 class="wp-heading-inline"><?php esc_html_e( 'FC Courses — Leader Applicants (Leaders Training)', 'fc-courses' ); ?></h1>
 
 	<?php if ( isset( $_GET['updated'] ) ) : ?>
 		<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Applicant updated.', 'fc-courses' ); ?></p></div>
@@ -64,7 +51,7 @@ $mh_labels = array( 'yes' => 'Yes', 'no' => 'No', 'unsure' => 'Unsure', '' => '�
 
 	<!-- Filters -->
 	<form method="get" class="fc-filters">
-		<input type="hidden" name="page" value="fc-courses-applicants">
+		<input type="hidden" name="page" value="fc-courses-leader-applicants">
 		<select name="filter_status">
 			<option value=""><?php esc_html_e( '— All Statuses —', 'fc-courses' ); ?></option>
 			<?php foreach ( array( 'pending', 'approved', 'rejected', 'enrolled' ) as $s ) : ?>
@@ -78,15 +65,19 @@ $mh_labels = array( 'yes' => 'Yes', 'no' => 'No', 'unsure' => 'Unsure', '' => '�
 	<!-- Edit / decision panel -->
 	<?php if ( $edit_applicant ) : ?>
 	<div class="fc-edit-panel">
-		<h2><?php esc_html_e( 'Review Applicant', 'fc-courses' ); ?></h2>
+		<h2><?php esc_html_e( 'Review Leader Applicant', 'fc-courses' ); ?></h2>
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-			<input type="hidden" name="action" value="fc_update_applicant">
+			<input type="hidden" name="action" value="fc_update_leader_applicant">
 			<input type="hidden" name="applicant_id" value="<?php echo esc_attr( $edit_applicant->id ); ?>">
-			<?php wp_nonce_field( 'fc_update_applicant' ); ?>
+			<?php wp_nonce_field( 'fc_update_leader_applicant' ); ?>
 			<table class="form-table">
 				<tr>
 					<th><?php esc_html_e( 'Full Name', 'fc-courses' ); ?></th>
 					<td><?php echo esc_html( $edit_applicant->full_name ); ?></td>
+				</tr>
+				<tr>
+					<th><?php esc_html_e( 'Type', 'fc-courses' ); ?></th>
+					<td><?php echo 'clinician' === $edit_applicant->participant_type ? esc_html__( 'Clinician', 'fc-courses' ) : esc_html__( 'Whānau member', 'fc-courses' ); ?></td>
 				</tr>
 				<tr>
 					<th><?php esc_html_e( 'Email', 'fc-courses' ); ?></th>
@@ -100,30 +91,67 @@ $mh_labels = array( 'yes' => 'Yes', 'no' => 'No', 'unsure' => 'Unsure', '' => '�
 					<th><?php esc_html_e( 'Town / Region', 'fc-courses' ); ?></th>
 					<td><?php echo esc_html( $edit_applicant->town_region ); ?></td>
 				</tr>
+				<?php if ( 'clinician' === $edit_applicant->participant_type ) : ?>
 				<tr>
-					<th><?php esc_html_e( 'Age of Loved One', 'fc-courses' ); ?></th>
-					<td><?php echo esc_html( $edit_applicant->loved_one_age ?? '—' ); ?></td>
+					<th><?php esc_html_e( 'Profession', 'fc-courses' ); ?></th>
+					<td><?php echo esc_html( $edit_applicant->profession ); ?></td>
 				</tr>
 				<tr>
-					<th><?php esc_html_e( 'Currently under public mental health service?', 'fc-courses' ); ?></th>
-					<td><?php echo esc_html( $mh_labels[ $edit_applicant->mental_health_current ?? '' ] ?? $edit_applicant->mental_health_current ); ?></td>
+					<th><?php esc_html_e( 'Place of Employment', 'fc-courses' ); ?></th>
+					<td><?php echo esc_html( $edit_applicant->place_of_employment ); ?></td>
 				</tr>
-				<?php if ( 'yes' !== ( $edit_applicant->mental_health_current ?? '' ) ) : ?>
 				<tr>
-					<th><?php esc_html_e( 'Ever been under public mental health service?', 'fc-courses' ); ?></th>
-					<td><?php echo esc_html( $mh_labels[ $edit_applicant->mental_health_past ?? '' ] ?? $edit_applicant->mental_health_past ); ?></td>
+					<th><?php esc_html_e( 'Management Approval', 'fc-courses' ); ?></th>
+					<td><?php echo esc_html( ucfirst( $edit_applicant->management_approval ) ); ?></td>
+				</tr>
+				<?php if ( ! empty( $edit_applicant->dbt_trained ) ) : ?>
+				<tr>
+					<th><?php esc_html_e( 'DBT Trained', 'fc-courses' ); ?></th>
+					<td><?php echo esc_html( ucfirst( $edit_applicant->dbt_trained ) ); ?></td>
 				</tr>
 				<?php endif; ?>
-				<?php if ( ! empty( $edit_applicant->relationship ) ) : ?>
+				<?php if ( ! empty( $edit_applicant->billing_contact ) ) : ?>
 				<tr>
-					<th><?php esc_html_e( 'Relationship', 'fc-courses' ); ?></th>
-					<td><?php echo esc_html( $relationship_labels[ $edit_applicant->relationship ] ?? $edit_applicant->relationship ); ?></td>
+					<th><?php esc_html_e( 'Billing Contact', 'fc-courses' ); ?></th>
+					<td><?php echo nl2br( esc_html( $edit_applicant->billing_contact ) ); ?></td>
 				</tr>
+				<?php endif; ?>
+				<?php else : ?>
+				<?php if ( ! empty( $edit_applicant->fc_participation ) ) : ?>
+				<tr>
+					<th><?php esc_html_e( 'FC Participation', 'fc-courses' ); ?></th>
+					<td><?php echo nl2br( esc_html( $edit_applicant->fc_participation ) ); ?></td>
+				</tr>
+				<?php endif; ?>
+				<?php if ( ! empty( $edit_applicant->leader_endorsement ) ) : ?>
+				<tr>
+					<th><?php esc_html_e( 'Leader Endorsement', 'fc-courses' ); ?></th>
+					<td><?php echo esc_html( $edit_applicant->leader_endorsement ); ?></td>
+				</tr>
+				<?php endif; ?>
 				<?php endif; ?>
 				<?php if ( ! empty( $edit_applicant->ethnicity ) ) : ?>
 				<tr>
 					<th><?php esc_html_e( 'Ethnicity', 'fc-courses' ); ?></th>
 					<td><?php echo esc_html( $edit_applicant->ethnicity ); ?></td>
+				</tr>
+				<?php endif; ?>
+				<?php if ( ! empty( $edit_applicant->training_dates ) ) : ?>
+				<tr>
+					<th><?php esc_html_e( 'Training Dates', 'fc-courses' ); ?></th>
+					<td><?php echo nl2br( esc_html( $edit_applicant->training_dates ) ); ?></td>
+				</tr>
+				<?php endif; ?>
+				<?php if ( ! empty( $edit_applicant->payment_method ) ) : ?>
+				<tr>
+					<th><?php esc_html_e( 'Payment Method', 'fc-courses' ); ?></th>
+					<td><?php echo esc_html( ucwords( str_replace( '_', ' ', $edit_applicant->payment_method ) ) ); ?></td>
+				</tr>
+				<?php endif; ?>
+				<?php if ( ! empty( $edit_applicant->payment_reference ) ) : ?>
+				<tr>
+					<th><?php esc_html_e( 'Payment Reference', 'fc-courses' ); ?></th>
+					<td><?php echo esc_html( $edit_applicant->payment_reference ); ?></td>
 				</tr>
 				<?php endif; ?>
 				<?php if ( ! empty( $edit_applicant->approval_code ) ) : ?>
@@ -154,7 +182,7 @@ $mh_labels = array( 'yes' => 'Yes', 'no' => 'No', 'unsure' => 'Unsure', '' => '�
 			</table>
 			<p class="submit">
 				<button type="submit" class="button button-primary"><?php esc_html_e( 'Save Decision', 'fc-courses' ); ?></button>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=fc-courses-applicants' ) ); ?>" class="button"><?php esc_html_e( 'Cancel', 'fc-courses' ); ?></a>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=fc-courses-leader-applicants' ) ); ?>" class="button"><?php esc_html_e( 'Cancel', 'fc-courses' ); ?></a>
 			</p>
 		</form>
 	</div>
@@ -166,12 +194,10 @@ $mh_labels = array( 'yes' => 'Yes', 'no' => 'No', 'unsure' => 'Unsure', '' => '�
 			<tr>
 				<th style="width:40px"><?php esc_html_e( 'ID', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Name', 'fc-courses' ); ?></th>
+				<th><?php esc_html_e( 'Type', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Email', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Phone', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Town / Region', 'fc-courses' ); ?></th>
-				<th style="width:50px"><?php esc_html_e( 'Age', 'fc-courses' ); ?></th>
-				<th><?php esc_html_e( 'MH Current', 'fc-courses' ); ?></th>
-				<th><?php esc_html_e( 'MH Past', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Status', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Applied', 'fc-courses' ); ?></th>
 				<th><?php esc_html_e( 'Actions', 'fc-courses' ); ?></th>
@@ -183,24 +209,21 @@ $mh_labels = array( 'yes' => 'Yes', 'no' => 'No', 'unsure' => 'Unsure', '' => '�
 				<tr>
 					<td><?php echo esc_html( $a->id ); ?></td>
 					<td><?php echo esc_html( $a->full_name ); ?></td>
+					<td><?php echo 'clinician' === $a->participant_type ? esc_html__( 'Clinician', 'fc-courses' ) : esc_html__( 'Whānau', 'fc-courses' ); ?></td>
 					<td><?php echo esc_html( $a->email ); ?></td>
 					<td><?php echo esc_html( $a->phone ); ?></td>
 					<td><?php echo esc_html( $a->town_region ); ?></td>
-					<td><?php echo esc_html( $a->loved_one_age ?? '—' ); ?></td>
-					<td><?php echo esc_html( $mh_labels[ $a->mental_health_current ?? '' ] ?? '—' ); ?></td>
-					<td><?php echo esc_html( ( 'yes' === ( $a->mental_health_current ?? '' ) ) ? '—' : ( $mh_labels[ $a->mental_health_past ?? '' ] ?? '—' ) ); ?></td>
 					<td><span class="fc-status fc-status-<?php echo esc_attr( $a->status ); ?>"><?php echo esc_html( ucfirst( $a->status ) ); ?></span></td>
 					<td><?php echo esc_html( wp_date( get_option( 'date_format' ), strtotime( $a->applied_at ) ) ); ?></td>
 					<td>
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=fc-courses-applicants&edit=' . $a->id ) ); ?>" class="button button-small"><?php esc_html_e( 'Review', 'fc-courses' ); ?></a>
-						<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=fc_delete_applicant&applicant_id=' . $a->id ), 'fc_delete_applicant' ) ); ?>" class="button button-small button-link-delete" onclick="return confirm('<?php esc_attr_e( 'Delete this applicant?', 'fc-courses' ); ?>')"><?php esc_html_e( 'Delete', 'fc-courses' ); ?></a>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=fc-courses-leader-applicants&edit=' . $a->id ) ); ?>" class="button button-small"><?php esc_html_e( 'Review', 'fc-courses' ); ?></a>
+						<a href="<?php echo esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=fc_delete_leader_applicant&applicant_id=' . $a->id ), 'fc_delete_leader_applicant' ) ); ?>" class="button button-small button-link-delete" onclick="return confirm('<?php esc_attr_e( 'Delete this applicant?', 'fc-courses' ); ?>')"><?php esc_html_e( 'Delete', 'fc-courses' ); ?></a>
 					</td>
 				</tr>
 				<?php endforeach; ?>
 			<?php else : ?>
-				<tr><td colspan="11"><?php esc_html_e( 'No applicants found.', 'fc-courses' ); ?></td></tr>
+				<tr><td colspan="9"><?php esc_html_e( 'No leader applicants found.', 'fc-courses' ); ?></td></tr>
 			<?php endif; ?>
 		</tbody>
 	</table>
 </div>
-

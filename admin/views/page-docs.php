@@ -118,9 +118,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<li><code>[fc_course_registration course_id="2"]</code> — <?php esc_html_e( 'registration form locked to Train the Trainer (ID 2)', 'fc-courses' ); ?></li>
 		</ul>
 
+		<!-- ---- fc_expression_of_interest ---- -->
+		<h3><code>[fc_expression_of_interest]</code></h3>
+		<p><?php esc_html_e( 'Displays the simplified Expression of Interest form for the Family Connections course. Collects name, town/region, phone, email, age of loved one, and two mental-health screening questions. Submissions are held for admin review under FC Courses → Applicants.', 'fc-courses' ); ?></p>
+		<p><?php esc_html_e( 'When the admin approves an applicant, a unique 12-character code is generated and emailed to the applicant (using the FC Approval Email template in Settings).', 'fc-courses' ); ?></p>
+		<p><?php esc_html_e( 'This shortcode has no attributes.', 'fc-courses' ); ?></p>
+
+		<!-- ---- fc_full_enrolment ---- -->
+		<h3><code>[fc_full_enrolment]</code></h3>
+		<p><?php esc_html_e( 'Displays the code-gated full enrolment form for the Family Connections course. Step 1: the applicant enters their approval code. Step 2: a pre-filled form (name, town/region, phone, email from their EOI) appears with additional fields: relationship, ethnicity (multi-select), and Participant Code of Conduct agreement.', 'fc-courses' ); ?></p>
+		<p><?php esc_html_e( 'On submission the applicant\'s status changes to "enrolled". This shortcode has no attributes.', 'fc-courses' ); ?></p>
+		<p><strong><?php esc_html_e( 'Suggested page setup:', 'fc-courses' ); ?></strong></p>
+		<ul>
+			<li><?php esc_html_e( 'Create a page called "Enrolment" (or similar) and add [fc_full_enrolment] to it.', 'fc-courses' ); ?></li>
+			<li><?php esc_html_e( 'Reference this page URL in your FC Approval Email body so approved applicants know where to go.', 'fc-courses' ); ?></li>
+		</ul>
+
+		<!-- ---- fc_leader_eoi ---- -->
+		<h3><code>[fc_leader_eoi]</code></h3>
+		<p><?php esc_html_e( 'Displays the Expression of Interest form for the Leaders Training. The form is conditional — Clinician applicants see profession, place of employment, and management approval fields; Whānau member applicants see FC participation history and leader endorsement fields.', 'fc-courses' ); ?></p>
+		<p><?php esc_html_e( 'Submissions appear under FC Courses → Leader Applicants. When approved, a unique code is emailed using the Leader Approval Email template. This shortcode has no attributes.', 'fc-courses' ); ?></p>
+
+		<!-- ---- fc_leader_enrolment ---- -->
+		<h3><code>[fc_leader_enrolment]</code></h3>
+		<p><?php esc_html_e( 'Displays the code-gated full enrolment form for the Leaders Training. Step 1: the applicant enters their approval code. Step 2: a pre-filled form appears with additional fields: ethnicity, clinician-specific details (DBT trained, billing contact), training dates, payment details, and Leader Code of Conduct agreement.', 'fc-courses' ); ?></p>
+		<p><?php esc_html_e( 'On submission the leader applicant\'s status changes to "enrolled". This shortcode has no attributes.', 'fc-courses' ); ?></p>
+
 		<!-- ============================================================ -->
 		<h2><?php esc_html_e( 'Typical Page Setup', 'fc-courses' ); ?></h2>
-		<p><?php esc_html_e( 'A common setup uses three pages:', 'fc-courses' ); ?></p>
+		<p><?php esc_html_e( 'A recommended setup uses these pages:', 'fc-courses' ); ?></p>
 		<table class="widefat fc-docs-table">
 			<thead>
 				<tr>
@@ -140,6 +166,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<tr>
 					<td><?php esc_html_e( 'Register / Book a Place', 'fc-courses' ); ?></td>
 					<td><code>[fc_course_registration]</code></td>
+				</tr>
+				<tr>
+					<td><?php esc_html_e( 'Family Connections – Expression of Interest', 'fc-courses' ); ?></td>
+					<td><code>[fc_expression_of_interest]</code></td>
+				</tr>
+				<tr>
+					<td><?php esc_html_e( 'Family Connections – Full Enrolment', 'fc-courses' ); ?></td>
+					<td><code>[fc_full_enrolment]</code></td>
+				</tr>
+				<tr>
+					<td><?php esc_html_e( 'Leaders Training – Expression of Interest', 'fc-courses' ); ?></td>
+					<td><code>[fc_leader_eoi]</code></td>
+				</tr>
+				<tr>
+					<td><?php esc_html_e( 'Leaders Training – Full Enrolment', 'fc-courses' ); ?></td>
+					<td><code>[fc_leader_enrolment]</code></td>
 				</tr>
 			</tbody>
 		</table>
