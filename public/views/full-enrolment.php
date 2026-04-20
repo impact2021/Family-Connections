@@ -97,6 +97,47 @@ if ( '' !== trim( $coc_content ) ) {
 	value="<?php echo esc_attr( isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : $applicant->email ); ?>">
 </div>
 
+<!-- Age of loved one (pre-filled) -->
+<div class="fc-eoi-field">
+<label for="fc_full_loved_one_age"><?php esc_html_e( 'Age of your loved one', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
+<input type="number" name="loved_one_age" id="fc_full_loved_one_age" required min="0" max="120" style="max-width:100px"
+	value="<?php echo esc_attr( isset( $_POST['loved_one_age'] ) ? absint( $_POST['loved_one_age'] ) : $applicant->loved_one_age ); ?>">
+</div>
+
+<!-- Mental health – current (pre-filled, full width) -->
+<div class="fc-eoi-field fc-eoi-field--full">
+<label><?php esc_html_e( 'Is your loved one currently under a public mental health service?', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
+<div class="fc-radio-group">
+<?php
+$mh_current_full = isset( $_POST['mental_health_current'] ) ? sanitize_text_field( wp_unslash( $_POST['mental_health_current'] ) ) : $applicant->mental_health_current;
+foreach ( array( 'yes' => __( 'Yes', 'fc-courses' ), 'no' => __( 'No', 'fc-courses' ), 'unsure' => __( 'Unsure', 'fc-courses' ) ) as $val => $lbl ) :
+?>
+<label class="fc-radio-option">
+<input type="radio" name="mental_health_current" value="<?php echo esc_attr( $val ); ?>"
+	<?php checked( $mh_current_full, $val ); ?> required>
+<?php echo esc_html( $lbl ); ?>
+</label>
+<?php endforeach; ?>
+</div>
+</div>
+
+<!-- Mental health – past (pre-filled, conditional: shown when current is not "yes") -->
+<div class="fc-eoi-field fc-eoi-field--full" id="fc_full_past_wrap"<?php echo ( 'no' === $mh_current_full || 'unsure' === $mh_current_full ) ? '' : ' hidden'; ?>>
+<label><?php esc_html_e( 'If not currently, have they ever been under a public mental health service?', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
+<div class="fc-radio-group">
+<?php
+$mh_past_full = isset( $_POST['mental_health_past'] ) ? sanitize_text_field( wp_unslash( $_POST['mental_health_past'] ) ) : $applicant->mental_health_past;
+foreach ( array( 'yes' => __( 'Yes', 'fc-courses' ), 'no' => __( 'No', 'fc-courses' ), 'unsure' => __( 'Unsure', 'fc-courses' ) ) as $val => $lbl ) :
+?>
+<label class="fc-radio-option">
+<input type="radio" name="mental_health_past" value="<?php echo esc_attr( $val ); ?>"
+	<?php checked( $mh_past_full, $val ); ?>>
+<?php echo esc_html( $lbl ); ?>
+</label>
+<?php endforeach; ?>
+</div>
+</div>
+
 <!-- Relationship -->
 <div class="fc-eoi-field fc-eoi-field--full">
 <label for="fc_full_relationship"><?php esc_html_e( 'Relationship to the main person you are attending the course for', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
@@ -156,6 +197,22 @@ printf(
 
 </div>
 </form>
+
+<script>
+(function () {
+	var radios = document.querySelectorAll('input[name="mental_health_current"]');
+	var wrap   = document.getElementById('fc_full_past_wrap');
+	if ( ! wrap ) return;
+	function toggle() {
+		var checked = document.querySelector('input[name="mental_health_current"]:checked');
+		var hide = !checked || checked.value === 'yes';
+		wrap.hidden = hide;
+		wrap.querySelectorAll('input[type="radio"]').forEach(function(r){ r.required = !hide; });
+	}
+	radios.forEach(function(r){ r.addEventListener('change', toggle); });
+	toggle();
+})();
+</script>
 <?php endif; ?>
 
 </div>
