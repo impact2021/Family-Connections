@@ -162,7 +162,7 @@ printf(
 
 <!-- Code of Conduct modal -->
 <?php if ( ! $form_message ) : ?>
-<div id="fc-coc-modal" class="fc-modal" role="dialog" aria-modal="true" aria-labelledby="fc-coc-modal-title" hidden>
+<div id="fc-coc-modal" class="fc-modal" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Participant Code of Conduct', 'fc-courses' ); ?>" hidden>
 <div class="fc-modal-overlay fc-coc-close"></div>
 <div class="fc-modal-dialog">
 <button class="fc-modal-close fc-coc-close" aria-label="<?php esc_attr_e( 'Close', 'fc-courses' ); ?>">&times;</button>

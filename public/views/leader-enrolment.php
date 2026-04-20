@@ -262,7 +262,7 @@ printf(
 
 <!-- Leader Code of Conduct modal -->
 <?php if ( ! $form_message ) : ?>
-<div id="fc-leader-coc-modal" class="fc-modal" role="dialog" aria-modal="true" hidden>
+<div id="fc-leader-coc-modal" class="fc-modal" role="dialog" aria-modal="true" aria-label="<?php esc_attr_e( 'Leader Code of Conduct', 'fc-courses' ); ?>" hidden>
 <div class="fc-modal-overlay fc-leader-coc-close"></div>
 <div class="fc-modal-dialog">
 <button class="fc-modal-close fc-leader-coc-close" aria-label="<?php esc_attr_e( 'Close', 'fc-courses' ); ?>">&times;</button>
