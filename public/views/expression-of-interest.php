@@ -82,7 +82,7 @@ foreach ( array( 'yes' => __( 'Yes', 'fc-courses' ), 'no' => __( 'No', 'fc-cours
 </div>
 
 <!-- Mental health – past (conditional: shown when current is not "yes") -->
-<div class="fc-eoi-field fc-eoi-field--full" id="fc_eoi_past_wrap"<?php echo ( 'yes' === $mh_current ) ? ' hidden' : ''; ?>>
+<div class="fc-eoi-field fc-eoi-field--full" id="fc_eoi_past_wrap"<?php echo ( 'no' === $mh_current || 'unsure' === $mh_current ) ? '' : ' hidden'; ?>>
 <label><?php esc_html_e( 'If not currently, have they ever been under a public mental health service?', 'fc-courses' ); ?> <span class="fc-required">*</span></label>
 <div class="fc-radio-group">
 <?php
@@ -113,7 +113,7 @@ foreach ( array( 'yes' => __( 'Yes', 'fc-courses' ), 'no' => __( 'No', 'fc-cours
 	if ( ! wrap ) return;
 	function toggle() {
 		var checked = document.querySelector('input[name="mental_health_current"]:checked');
-		var hide = checked && checked.value === 'yes';
+		var hide = !checked || checked.value === 'yes';
 		wrap.hidden = hide;
 		wrap.querySelectorAll('input[type="radio"]').forEach(function(r){ r.required = !hide; });
 	}
